@@ -1,5 +1,6 @@
 package com.l1maor.vehicleworkshop.service;
 
+import com.l1maor.vehicleworkshop.dto.VehicleRegistrationDto;
 import com.l1maor.vehicleworkshop.entity.DieselVehicle;
 import com.l1maor.vehicleworkshop.entity.ElectricVehicle;
 import com.l1maor.vehicleworkshop.entity.FuelType;
@@ -25,4 +26,12 @@ public interface VehicleService {
     GasVehicle saveGasVehicle(GasVehicle vehicle);
 
     GasVehicle convertElectricToGas(Long vehicleId, Set<FuelType> newFuelTypes);
+    boolean isVehicleConvertible(Long vehicleId);
+    boolean isVehicleConvertible(Vehicle vehicle);
+
+    VehicleRegistrationDto getRegistrationInfo(Long vehicleId);
+    List<VehicleRegistrationDto> getAllRegistrationInfo();
+
+    boolean existsByVin(String vin);
+    boolean existsByLicensePlate(String licensePlate);
 }

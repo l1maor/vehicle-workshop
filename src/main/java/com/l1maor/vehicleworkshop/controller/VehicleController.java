@@ -1,6 +1,7 @@
 package com.l1maor.vehicleworkshop.controller;
 
 import com.l1maor.vehicleworkshop.dto.VehicleDto;
+import com.l1maor.vehicleworkshop.dto.VehicleRegistrationDto;
 import com.l1maor.vehicleworkshop.entity.BatteryType;
 import com.l1maor.vehicleworkshop.entity.DieselVehicle;
 import com.l1maor.vehicleworkshop.entity.ElectricVehicle;
@@ -58,6 +59,32 @@ public class VehicleController {
                 .map(this::convertToDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+    
+    /**
+     * Retrieves the registration information for a specific vehicle
+     * 
+     * - Diesel vehicles: License plate + type of injection pump
+     * - Electric vehicles: VIN + Voltage + Current + Battery Type
+     * - Gasoline vehicles: License plate + Type of fuel used
+     * 
+     * For convertible vehicles (electric), it also includes conversion data:
+     * License plate + potential fuel types
+     */
+    @GetMapping("/{id}/registration")
+    public ResponseEntity<VehicleRegistrationDto> getVehicleRegistration(@PathVariable Long id) {
+        try {
+            VehicleRegistrationDto registrationDto = vehicleService.getRegistrationInfo(id);
+            return ResponseEntity.ok(registrationDto);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/registration")
+    public ResponseEntity<List<VehicleRegistrationDto>> getAllVehicleRegistrations() {
+        List<VehicleRegistrationDto> registrations = vehicleService.getAllRegistrationInfo();
+        return ResponseEntity.ok(registrations);
     }
 
     @PostMapping("/diesel")
@@ -171,6 +198,16 @@ public class VehicleController {
             return ResponseEntity.ok(dtos);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/{id}/is-convertible")
+    public ResponseEntity<Boolean> isVehicleConvertible(@PathVariable Long id) {
+        try {
+            boolean convertible = vehicleService.isVehicleConvertible(id);
+            return ResponseEntity.ok(convertible);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 

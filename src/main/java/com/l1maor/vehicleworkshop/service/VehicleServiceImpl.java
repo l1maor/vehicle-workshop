@@ -1,5 +1,6 @@
 package com.l1maor.vehicleworkshop.service;
 
+import com.l1maor.vehicleworkshop.dto.VehicleRegistrationDto;
 import com.l1maor.vehicleworkshop.entity.BatteryType;
 import com.l1maor.vehicleworkshop.entity.ConversionHistory;
 import com.l1maor.vehicleworkshop.entity.DieselVehicle;
@@ -17,9 +18,11 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class VehicleServiceImpl implements VehicleService {
@@ -43,6 +46,16 @@ public class VehicleServiceImpl implements VehicleService {
     @Transactional
     public Vehicle saveVehicle(Vehicle vehicle) {
         try {
+            if (vehicle.getId() == null) {
+                if (vehicleRepository.existsByVin(vehicle.getVin())) {
+                    throw new IllegalArgumentException("Vehicle with VIN " + vehicle.getVin() + " already exists");
+                }
+                
+                if (vehicleRepository.existsByLicensePlate(vehicle.getLicensePlate())) {
+                    throw new IllegalArgumentException("Vehicle with license plate " + vehicle.getLicensePlate() + " already exists");
+                }
+            }
+            
             Vehicle saved = vehicleRepository.save(vehicle);
             sseService.broadcastVehicleUpdate(saved);
             return saved;
@@ -76,6 +89,16 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public List<Vehicle> findByType(VehicleType type) {
         return vehicleRepository.findByType(type);
+    }
+    
+    @Override
+    public boolean existsByVin(String vin) {
+        return vehicleRepository.existsByVin(vin);
+    }
+    
+    @Override
+    public boolean existsByLicensePlate(String licensePlate) {
+        return vehicleRepository.existsByLicensePlate(licensePlate);
     }
 
     @Override
@@ -142,5 +165,70 @@ public class VehicleServiceImpl implements VehicleService {
         sseService.broadcastVehicleUpdate(saved);
         
         return saved;
+    }
+    
+    @Override
+    public boolean isVehicleConvertible(Long vehicleId) {
+        return vehicleRepository.findById(vehicleId)
+                .map(this::isVehicleConvertible)
+                .orElse(false);
+    }
+    
+    @Override
+    public boolean isVehicleConvertible(Vehicle vehicle) {
+        return vehicle instanceof ElectricVehicle;
+    }
+    
+    @Override
+    public VehicleRegistrationDto getRegistrationInfo(Long vehicleId) {
+        Vehicle vehicle = vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new EntityNotFoundException("Vehicle not found with id: " + vehicleId));
+                
+        return createRegistrationInfo(vehicle);
+    }
+    
+    @Override
+    public List<VehicleRegistrationDto> getAllRegistrationInfo() {
+        return vehicleRepository.findAll().stream()
+                .map(this::createRegistrationInfo)
+                .collect(Collectors.toList());
+    }
+
+    private VehicleRegistrationDto createRegistrationInfo(Vehicle vehicle) {
+        VehicleRegistrationDto dto = new VehicleRegistrationDto();
+        dto.setId(vehicle.getId());
+        dto.setType(vehicle.getType());
+        
+        boolean isConvertible = isVehicleConvertible(vehicle);
+        dto.setConvertible(isConvertible);
+
+        String registrationInfo;
+        if (vehicle instanceof DieselVehicle) {
+            DieselVehicle dieselVehicle = (DieselVehicle) vehicle;
+            registrationInfo = dieselVehicle.getLicensePlate() + " + " + 
+                    dieselVehicle.getInjectionPumpType().name();
+        } else if (vehicle instanceof ElectricVehicle) {
+            ElectricVehicle electricVehicle = (ElectricVehicle) vehicle;
+            registrationInfo = electricVehicle.getVin() + " + " +
+                    electricVehicle.getBatteryVoltage() + "V + " +
+                    electricVehicle.getBatteryCurrent() + "A + " +
+                    electricVehicle.getBatteryType().name();
+
+            dto.setConversionData(electricVehicle.getLicensePlate() + " + POTENTIAL FUELS: " +
+                    String.join(", ", Arrays.stream(FuelType.values())
+                            .map(Enum::name)
+                            .collect(Collectors.toList())));
+        } else if (vehicle instanceof GasVehicle) {
+            GasVehicle gasVehicle = (GasVehicle) vehicle;
+            registrationInfo = gasVehicle.getLicensePlate() + " + FUELS: " +
+                    gasVehicle.getFuelTypes().stream()
+                            .map(Enum::name)
+                            .collect(Collectors.joining(", "));
+        } else {
+            registrationInfo = "Unknown vehicle type";
+        }
+        
+        dto.setRegistrationInfo(registrationInfo);
+        return dto;
     }
 }
