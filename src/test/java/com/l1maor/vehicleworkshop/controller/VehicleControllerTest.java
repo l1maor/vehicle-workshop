@@ -1,6 +1,7 @@
 package com.l1maor.vehicleworkshop.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.l1maor.vehicleworkshop.config.TestJpaConfig;
 import com.l1maor.vehicleworkshop.config.WebMvcTestConfig;
 import com.l1maor.vehicleworkshop.dto.VehicleDto;
 import com.l1maor.vehicleworkshop.dto.VehicleRegistrationDto;
@@ -15,8 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -32,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(VehicleController.class)
 @ActiveProfiles("test")
-@Import(WebMvcTestConfig.class)
+@Import({WebMvcTestConfig.class, TestJpaConfig.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class VehicleControllerTest {
 
@@ -44,7 +48,7 @@ public class VehicleControllerTest {
 
     @MockBean
     private VehicleService vehicleService;
-
+    
     @MockBean
     private SseService sseService;
 
@@ -87,6 +91,7 @@ public class VehicleControllerTest {
 
     @Test
     @DisplayName("GET /api/vehicles - Get all vehicles")
+    @WithMockUser(username = "user", roles = {"USER"})
     void testGetAllVehicles() throws Exception {
         // Given
         List<Vehicle> vehicles = Arrays.asList(dieselVehicle, electricVehicle, gasVehicle);
@@ -110,6 +115,7 @@ public class VehicleControllerTest {
 
     @Test
     @DisplayName("GET /api/vehicles/{id} - Get vehicle by ID")
+    @WithMockUser(username = "user", roles = {"USER"})
     void testGetVehicleById() throws Exception {
         // Given
         when(vehicleService.findById(1L)).thenReturn(Optional.of(dieselVehicle));
@@ -127,6 +133,7 @@ public class VehicleControllerTest {
 
     @Test
     @DisplayName("GET /api/vehicles/{id} - Vehicle not found")
+    @WithMockUser(username = "user", roles = {"USER"})
     void testGetVehicleById_NotFound() throws Exception {
         // Given
         when(vehicleService.findById(999L)).thenReturn(Optional.empty());
@@ -138,6 +145,7 @@ public class VehicleControllerTest {
 
     @Test
     @DisplayName("POST /api/vehicles/diesel - Create diesel vehicle")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testCreateDieselVehicle() throws Exception {
         // Given
         VehicleDto dto = new VehicleDto();
@@ -161,6 +169,7 @@ public class VehicleControllerTest {
 
     @Test
     @DisplayName("POST /api/vehicles/electric - Create electric vehicle")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testCreateElectricVehicle() throws Exception {
         // Given
         VehicleDto dto = new VehicleDto();
@@ -188,6 +197,7 @@ public class VehicleControllerTest {
 
     @Test
     @DisplayName("POST /api/vehicles/gas - Create gasoline vehicle")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testCreateGasVehicle() throws Exception {
         // Given
         VehicleDto dto = new VehicleDto();
@@ -212,6 +222,7 @@ public class VehicleControllerTest {
 
     @Test
     @DisplayName("PUT /api/vehicles/{id} - Update vehicle")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testUpdateVehicle() throws Exception {
         // Given
         VehicleDto dto = new VehicleDto();
@@ -242,6 +253,7 @@ public class VehicleControllerTest {
 
     @Test
     @DisplayName("DELETE /api/vehicles/{id} - Delete vehicle")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testDeleteVehicle() throws Exception {
         // Given
         when(vehicleService.deleteVehicle(1L)).thenReturn(true);
@@ -253,6 +265,7 @@ public class VehicleControllerTest {
 
     @Test
     @DisplayName("GET /api/vehicles/type/{type} - Get vehicles by type")
+    @WithMockUser(username = "user", roles = {"USER"})
     void testGetVehiclesByType() throws Exception {
         // Given
         when(vehicleService.findByType(VehicleType.DIESEL)).thenReturn(List.of(dieselVehicle));
@@ -267,6 +280,7 @@ public class VehicleControllerTest {
 
     @Test
     @DisplayName("GET /api/vehicles/{id}/is-convertible - Check if vehicle is convertible")
+    @WithMockUser(username = "user", roles = {"USER"})
     void testIsVehicleConvertible() throws Exception {
         // Given
         when(vehicleService.isVehicleConvertible(2L)).thenReturn(true);
@@ -284,6 +298,7 @@ public class VehicleControllerTest {
 
     @Test
     @DisplayName("POST /api/vehicles/{id}/convert-to-gas - Convert electric to gasoline")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testConvertElectricToGas() throws Exception {
         // Given
         String[] fuelTypes = {"B83", "B90"};
@@ -312,6 +327,7 @@ public class VehicleControllerTest {
 
     @Test
     @DisplayName("GET /api/vehicles/{id}/registration - Get vehicle registration")
+    @WithMockUser(username = "user", roles = {"USER"})
     void testGetVehicleRegistration() throws Exception {
         // Given
         when(vehicleService.getRegistrationInfo(1L)).thenReturn(registrationDto);
@@ -328,6 +344,7 @@ public class VehicleControllerTest {
 
     @Test
     @DisplayName("GET /api/vehicles/registration - Get all vehicle registrations")
+    @WithMockUser(username = "user", roles = {"USER"})
     void testGetAllVehicleRegistrations() throws Exception {
         // Given
         VehicleRegistrationDto electricRegistrationDto = new VehicleRegistrationDto(
@@ -357,6 +374,7 @@ public class VehicleControllerTest {
 
     @Test
     @DisplayName("GET /api/vehicles/stream - Stream vehicle events")
+    @WithMockUser(username = "user", roles = {"USER"})
     void testStreamVehicleEvents() throws Exception {
         // Given
         SseEmitter emitter = new SseEmitter();

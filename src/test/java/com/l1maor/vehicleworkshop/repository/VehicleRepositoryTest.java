@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(TestDataGenerator.class)
+@Import({TestDataGenerator.class, com.l1maor.vehicleworkshop.config.TestConfig.class})
 public class VehicleRepositoryTest {
 
     @Autowired

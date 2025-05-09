@@ -1,6 +1,7 @@
 package com.l1maor.vehicleworkshop.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.l1maor.vehicleworkshop.config.TestJpaConfig;
 import com.l1maor.vehicleworkshop.config.WebMvcTestConfig;
 import com.l1maor.vehicleworkshop.dto.UserDto;
 import com.l1maor.vehicleworkshop.entity.Role;
@@ -17,7 +18,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.*;
 
@@ -32,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 @ActiveProfiles("test")
-@Import(WebMvcTestConfig.class)
+@Import({WebMvcTestConfig.class, TestJpaConfig.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class UserControllerTest {
 
@@ -42,7 +44,7 @@ public class UserControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @SpyBean
+    @MockBean
     private UserService userService;
 
     private User adminUser;
@@ -75,6 +77,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("GET /api/users - Get all users")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testGetAllUsers() throws Exception {
         // Given
         when(userService.findAllUsers()).thenReturn(Arrays.asList(adminUser, regularUser));
@@ -98,6 +101,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("GET /api/users/{id} - Get user by ID")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testGetUserById() throws Exception {
         // Given
         when(userService.findById(1L)).thenReturn(Optional.of(adminUser));
@@ -115,6 +119,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("GET /api/users/{id} - User not found")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testGetUserById_NotFound() throws Exception {
         // Given
         when(userService.findById(999L)).thenReturn(Optional.empty());
@@ -126,6 +131,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("POST /api/users - Create user")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testCreateUser() throws Exception {
         // Given
         UserDto userDto = new UserDto();
@@ -155,6 +161,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("POST /api/users - Username already exists")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testCreateUser_UsernameExists() throws Exception {
         // Given
         UserDto userDto = new UserDto();
@@ -174,6 +181,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("PUT /api/users/{id} - Update user")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testUpdateUser() throws Exception {
         // Given
         UserDto userDto = new UserDto();
@@ -203,6 +211,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("PUT /api/users/{id} - User not found")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testUpdateUser_NotFound() throws Exception {
         // Given
         UserDto userDto = new UserDto();
@@ -220,6 +229,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("DELETE /api/users/{id} - Delete user")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testDeleteUser() throws Exception {
         // Given
         when(userService.deleteUser(1L)).thenReturn(true);
@@ -231,6 +241,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("DELETE /api/users/{id} - User not found")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testDeleteUser_NotFound() throws Exception {
         // Given
         when(userService.deleteUser(999L)).thenReturn(false);

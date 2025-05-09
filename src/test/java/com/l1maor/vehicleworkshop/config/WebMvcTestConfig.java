@@ -1,11 +1,26 @@
 package com.l1maor.vehicleworkshop.config;
 
+import com.l1maor.vehicleworkshop.repository.RoleRepository;
+import com.l1maor.vehicleworkshop.repository.UserRepository;
+import com.l1maor.vehicleworkshop.repository.VehicleRepository;
+import com.l1maor.vehicleworkshop.repository.ConversionHistoryRepository;
+import com.l1maor.vehicleworkshop.repository.UserRepository;
+import com.l1maor.vehicleworkshop.repository.RoleRepository;
+import com.l1maor.vehicleworkshop.repository.UserRepository;
+import com.l1maor.vehicleworkshop.repository.RoleRepository;
 import com.l1maor.vehicleworkshop.security.CustomUserDetailsService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.event.SimpleApplicationEventMulticaster;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * Test configuration for WebMvcTest
@@ -22,10 +37,50 @@ public class WebMvcTestConfig {
     private CustomUserDetailsService userDetailsService;
 
     /**
+     * Mock JPA components
+     */
+    @MockBean
+    private EntityManager entityManager;
+    
+    @MockBean
+    private EntityManagerFactory entityManagerFactory;
+
+    /**
+     * Mock repositories
+     */
+    @MockBean
+    private VehicleRepository vehicleRepository;
+
+    @MockBean
+    private ConversionHistoryRepository conversionHistoryRepository;
+    
+    @MockBean
+    private UserRepository userRepository;
+    
+    @MockBean
+    private RoleRepository roleRepository;
+
+    /**
      * Password encoder for testing
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * Application event multicaster for testing
+     */
+    @Bean
+    public ApplicationEventMulticaster applicationEventMulticaster() {
+        return new SimpleApplicationEventMulticaster();
+    }
+    
+    /**
+     * Transaction manager for testing
+     */
+    @Bean
+    public PlatformTransactionManager transactionManager() {
+        return new JpaTransactionManager(entityManagerFactory);
     }
 }
