@@ -1,3 +1,36 @@
+# Project specification and requisites
+A workshop company records each incoming vehicle's license plate and VIN number. It accepts diesel, gasoline and electric vehicles. For diesel vehicles, it also records the type of injection pump used, which can be linear or rotary. For electric vehicles, it records the type of battery (GEL or LITHIUM) and the battery voltage and current. In the case of gasoline vehicles, the type of fuel used is recorded, which may be B83, B90, B94 or B100, or a combination of these.
+
+The vehicles can be converted or not, that is, converted from one type of fuel to another. The company only supports the conversion of electric vehicles to gasoline.
+
+The company would like to have a web application through which it can perform the following operations:
+
+- Obtain the inventory of vehicles in the workshop. To be able to search the inventory by vehicle type.
+- Check in and check out vehicles, avoid duplicates with the same license plate and VIN.
+- Obtain the registration information of the vehicles in the inventory. This information is coded as follows:
+Diesel vehicles: License plate + type of injection pump.
+Electric vehicles: VIN + Voltage + Current + Battery Type
+Gasoline vehicles: License plate + Type of fuel used.
+
+In case one of the vehicles is reconvertible, in addition to the registration information, you must obtain the reconversion data: License plate + type of fuel to be used by the vehicle after conversion.
+
+# Requisitos del proyecto (es)
+
+Una empresa de talleres registra de cada vehículo que entra su matrícula y el número de identificación (VIN). Admite vehículos de diesel, gasolina y eléctricos. De los vehículos de diesel registra además el tipo de bomba de inyección que usa, la cual puede ser lineal o rotatoria. De los eléctricos registra el tipo de batería (GEL o LITIO) y el voltaje y la corriente de la batería. En el caso de los de gasolina se registra el tipo de combustible que usa, que puede ser B83, B90, B94 o B100, o una combinación de estos.
+
+Los vehículos pueden ser reconvertidos o no, o sea, llevados de un tipo de combustible a otro. La empresa solo admite reconversión de vehículos eléctricos a gasolina.
+
+La empresa desea contar con una aplicación web mediante la cuál pueda realizar las siguientes operaciones:
+
+•⁠  ⁠Obtener el inventario de vehículos en el taller. Poder realizar búsqueda sobre el inventario por el tipo de vehículo.
+•⁠  Dar entrada y salida de vehículos, evitar duplicados con la misma matrícula y VIN
+•⁠  ⁠Obtener la información de registro de los vehículos en el inventario. Esta información se codifica de la siguiente manera:
+Vehículos diesel: Matrícula + tipo de bomba de inyección
+Vehículos eléctricos: VIN + Voltaje + Corriente + Tipo de batería
+Vehículos de gasolina: Matricula + Tipos de combustible que usa.
+
+En caso que uno de los vehículos sea reconvertible, además de la información de registro se debe obtener los datos de reconversión: Matrícula + tipo de combustible que usará luego de reconvertido.
+
 # Vehicle Workshop Inventory Management System
 
 This is a Spring Boot application that provides inventory management for a vehicle workshop, with features like user authentication, vehicle tracking, and conversion history.
