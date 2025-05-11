@@ -1,8 +1,21 @@
 import type { ReactNode } from "react";
-import { Layout as RALayout, CheckForApplicationUpdate } from "react-admin";
+import { Layout as RALayout, AppBar, CheckForApplicationUpdate } from "react-admin";
+import { Typography, Box } from "@mui/material";
+
+const CustomAppBar = () => {
+  return (
+    <AppBar color="primary">
+      <Box flex="1">
+        <Typography variant="h6" id="react-admin-title">
+          Vehicle Workshop Management
+        </Typography>
+      </Box>
+    </AppBar>
+  );
+};
 
 export const Layout = ({ children }: { children: ReactNode }) => (
-  <RALayout>
+  <RALayout appBar={CustomAppBar}>
     {children}
     <CheckForApplicationUpdate />
   </RALayout>

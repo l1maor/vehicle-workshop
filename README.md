@@ -1,3 +1,5 @@
+# This project uses java 17
+
 # Project specification and requisites
 A workshop company records each incoming vehicle's license plate and VIN number. It accepts diesel, gasoline and electric vehicles. For diesel vehicles, it also records the type of injection pump used, which can be linear or rotary. For electric vehicles, it records the type of battery (GEL or LITHIUM) and the battery voltage and current. In the case of gasoline vehicles, the type of fuel used is recorded, which may be B83, B90, B94 or B100, or a combination of these.
 

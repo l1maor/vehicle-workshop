@@ -53,7 +53,13 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll() // Allow authentication endpoints
+                // OpenAPI endpoints
+                .requestMatchers("/swagger-ui/**").permitAll()
+                .requestMatchers("/v3/api-docs/**").permitAll()
+                .requestMatchers("/swagger-ui.html").permitAll()
+                .requestMatchers("/swagger-resources/**").permitAll()
+                // Allow authentication endpoints
+                .requestMatchers("/api/auth/**").permitAll() 
                 .requestMatchers("/api/roles/**").hasRole("ADMIN") // Restrict roles endpoint to ADMIN
                 .requestMatchers(HttpMethod.POST, "/api/users").hasRole("ADMIN") // Restrict user creation
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
