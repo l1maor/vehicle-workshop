@@ -6,7 +6,11 @@ import com.l1maor.vehicleworkshop.entity.User;
 import com.l1maor.vehicleworkshop.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +21,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -46,10 +55,38 @@ public class UserController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+    
+    @GetMapping("/profile")
+    public ResponseEntity<UserDto> getCurrentUserProfile() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            
+            // Try to find current user by username
+            Optional<User> currentUser = userService.findByUsername(userDetails.getUsername());
+            
+            if (currentUser.isPresent()) {
+                return ResponseEntity.ok(convertToDto(currentUser.get()));
+            }
+        }
+        
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
 
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@RequestBody UserDto userDto) {
+    public ResponseEntity<?> createUser(@RequestBody UserDto userDto) {
         try {
+            // Validate user data
+            if (userDto.getUsername() == null || userDto.getUsername().isEmpty() ||
+                userDto.getPassword() == null || userDto.getPassword().isEmpty() ||
+                userDto.getRoles() == null || userDto.getRoles().isEmpty()) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("message", "Username, password, and roles are required");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(errorResponse);
+            }
+            
             User user = new User();
             user.setUsername(userDto.getUsername());
 
@@ -61,24 +98,58 @@ public class UserController {
             
             return ResponseEntity.status(HttpStatus.CREATED).body(convertToDto(createdUser));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Username already exists: " + userDto.getUsername());
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(errorResponse);
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Role does not exist: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(errorResponse);
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDto> updateUser(@PathVariable Long id, @RequestBody UserDto userDto) {
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserDto userDto) {
         try {
             User existingUser = userService.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
 
+            // Check if username is taken by another user
+            Optional<User> userWithSameUsername = userService.findByUsername(userDto.getUsername());
+            if (userWithSameUsername.isPresent() && !userWithSameUsername.get().getId().equals(id)) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("message", "Username already exists: " + userDto.getUsername());
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(errorResponse);
+            }
+
             existingUser.setUsername(userDto.getUsername());
+            
+            // Update roles if provided
+            if (userDto.getRoles() != null && !userDto.getRoles().isEmpty()) {
+                try {
+                    Set<Role> roles = new HashSet<>();
+                    for (String roleName : userDto.getRoles()) {
+                        roles.add(userService.findRoleByName(roleName)
+                                .orElseThrow(() -> new EntityNotFoundException("Role not found: " + roleName)));
+                    }
+                    existingUser.setRoles(roles);
+                } catch (EntityNotFoundException e) {
+                    Map<String, String> errorResponse = new HashMap<>();
+                    errorResponse.put("message", e.getMessage());
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(errorResponse);
+                }
+            }
             
             User updatedUser = userService.updateUser(id, existingUser);
             return ResponseEntity.ok(convertToDto(updatedUser));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
         }

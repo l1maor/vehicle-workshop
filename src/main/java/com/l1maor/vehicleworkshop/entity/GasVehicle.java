@@ -9,6 +9,9 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PostPersist;
+import jakarta.persistence.PrePersist;
 import org.hibernate.envers.Audited;
 
 import java.util.HashSet;
@@ -27,19 +30,28 @@ public class GasVehicle extends Vehicle {
 
     public GasVehicle() {
         super();
+        setType(VehicleType.GASOLINE);
     }
-
+    
     public GasVehicle(String vin, String licensePlate, Set<FuelType> fuelTypes) {
         super(vin, licensePlate);
         this.fuelTypes = fuelTypes;
+        setType(VehicleType.GASOLINE);
     }
-
+    
     public Set<FuelType> getFuelTypes() {
         return fuelTypes;
     }
-
+    
     public void setFuelTypes(Set<FuelType> fuelTypes) {
         this.fuelTypes = fuelTypes;
+    }
+    
+    @PostLoad
+    @PostPersist
+    @PrePersist
+    public void ensureType() {
+        setType(VehicleType.GASOLINE);
     }
 
     public void addFuelType(FuelType fuelType) {

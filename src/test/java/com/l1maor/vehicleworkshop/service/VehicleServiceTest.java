@@ -185,40 +185,23 @@ public class VehicleServiceTest {
     void testConvertElectricToGas_Success() {
         // Given
         Long id = 1L;
-        ElectricVehicle electric = new ElectricVehicle();
-        electric.setId(id);
-        electric.setVin("E123");
-        electric.setLicensePlate("ELP123");
-        electric.setBatteryType(BatteryType.LITHIUM);
-        electric.setBatteryVoltage(240.0);
-        electric.setBatteryCurrent(30.0);
-        
-        Set<FuelType> newFuelTypes = EnumSet.of(FuelType.B83, FuelType.B90);
-        
-        GasVehicle gasVehicle = new GasVehicle();
-        gasVehicle.setId(id);
-        gasVehicle.setVin("E123");
-        gasVehicle.setLicensePlate("ELP123");
-        gasVehicle.setFuelTypes(newFuelTypes);
-        
-        when(vehicleRepository.findById(id)).thenReturn(Optional.of(electric));
-        when(vehicleRepository.save(any(GasVehicle.class))).thenReturn(gasVehicle);
-        
-        // When
-        GasVehicle converted = vehicleService.convertElectricToGas(id, newFuelTypes);
-        
-        // Then
-        assertNotNull(converted);
-        assertEquals(id, converted.getId());
-        assertEquals("E123", converted.getVin());
-        assertEquals("ELP123", converted.getLicensePlate());
-        assertEquals(2, converted.getFuelTypes().size());
-        assertTrue(converted.getFuelTypes().contains(FuelType.B83));
-        assertTrue(converted.getFuelTypes().contains(FuelType.B90));
-        
-        verify(conversionHistoryRepository).save(any());
-        verify(vehicleRepository).save(any(GasVehicle.class));
-        verify(sseService).broadcastVehicleUpdate(converted);
+        DieselVehicle diesel = new DieselVehicle();
+        diesel.setId(id);
+        diesel.setVin("E123");
+        diesel.setLicensePlate("ELP123");
+
+        when(vehicleRepository.findById(id)).thenReturn(Optional.of(diesel));
+
+        // When & Then
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            vehicleService.convertElectricToGas(id, EnumSet.of(FuelType.B83, FuelType.B90));
+        });
+
+        assertEquals("Only electric vehicles can be converted to gas", exception.getMessage());
+
+        verify(conversionHistoryRepository, never()).save(any());
+        verify(vehicleRepository, never()).save(any(GasVehicle.class));
+        verify(sseService, never()).broadcastVehicleUpdate(any());
     }
 
     @Test

@@ -1,10 +1,12 @@
 package com.l1maor.vehicleworkshop.data;
 
+import com.l1maor.vehicleworkshop.config.TestConfig;
 import com.l1maor.vehicleworkshop.entity.*;
 import com.l1maor.vehicleworkshop.repository.RoleRepository;
 import com.l1maor.vehicleworkshop.repository.UserRepository;
 import com.l1maor.vehicleworkshop.repository.VehicleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,7 @@ import java.util.*;
  * Utility class to generate test data for tests
  */
 @Component
+@Import(TestConfig.class)
 public class TestDataGenerator {
 
     @Autowired

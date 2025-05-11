@@ -1,5 +1,6 @@
 package com.l1maor.vehicleworkshop.service;
 
+import com.l1maor.vehicleworkshop.entity.Role;
 import com.l1maor.vehicleworkshop.entity.User;
 
 import java.util.List;
@@ -13,4 +14,5 @@ public interface UserService {
     Optional<User> findByUsername(String username);
     List<User> findAllUsers();
     boolean existsByUsername(String username);
+    Optional<Role> findRoleByName(String roleName);
 }

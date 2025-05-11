@@ -304,7 +304,7 @@ public class UserIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(userDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message", containsString("does not exist")));
+                .andExpect(jsonPath("$.message", containsString("Role does not exist")));
     }
 
     @Test
@@ -350,10 +350,11 @@ public class UserIntegrationTest {
                 .andExpect(jsonPath("$.name", is(roleName)));
 
         // Verify role was created
-        assertTrue(roleRepository.findByName(roleName).isPresent());
+        var roleOpt = roleRepository.findByName(roleName);
+        assertTrue(roleOpt.isPresent());
 
         // Get the role ID
-        Role role = roleRepository.findByName(roleName).get();
+        Role role = roleOpt.get();
 
         // When & Then - Delete role
         mockMvc.perform(delete("/api/roles/" + role.getId()))

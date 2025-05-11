@@ -5,6 +5,9 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PostPersist;
+import jakarta.persistence.PrePersist;
 import org.hibernate.envers.Audited;
 
 @Entity
@@ -18,11 +21,13 @@ public class DieselVehicle extends Vehicle {
 
     public DieselVehicle() {
         super();
+        setType(VehicleType.DIESEL);
     }
 
     public DieselVehicle(String vin, String licensePlate, InjectionPumpType injectionPumpType) {
         super(vin, licensePlate);
         this.injectionPumpType = injectionPumpType;
+        setType(VehicleType.DIESEL);
     }
 
     public InjectionPumpType getInjectionPumpType() {
@@ -31,5 +36,12 @@ public class DieselVehicle extends Vehicle {
 
     public void setInjectionPumpType(InjectionPumpType injectionPumpType) {
         this.injectionPumpType = injectionPumpType;
+    }
+    
+    @PostLoad
+    @PostPersist
+    @PrePersist
+    public void ensureType() {
+        setType(VehicleType.DIESEL);
     }
 }

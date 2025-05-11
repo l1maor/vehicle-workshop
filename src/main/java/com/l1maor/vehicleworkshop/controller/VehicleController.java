@@ -25,10 +25,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -88,8 +91,14 @@ public class VehicleController {
     }
 
     @PostMapping("/diesel")
-    public ResponseEntity<VehicleDto> createDieselVehicle(@RequestBody VehicleDto vehicleDto) {
+    public ResponseEntity<?> createDieselVehicle(@RequestBody VehicleDto vehicleDto) {
         try {
+            if (vehicleDto.getVin() == null || vehicleDto.getLicensePlate() == null || vehicleDto.getInjectionPumpType() == null) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("message", "Required fields cannot be null (VIN, license plate, injection pump type)");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            }
+            
             DieselVehicle vehicle = new DieselVehicle();
             vehicle.setVin(vehicleDto.getVin());
             vehicle.setLicensePlate(vehicleDto.getLicensePlate());
@@ -98,13 +107,23 @@ public class VehicleController {
             DieselVehicle saved = vehicleService.saveDieselVehicle(vehicle);
             return ResponseEntity.status(HttpStatus.CREATED).body(convertToDto(saved));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
         }
     }
 
     @PostMapping("/electric")
-    public ResponseEntity<VehicleDto> createElectricVehicle(@RequestBody VehicleDto vehicleDto) {
+    public ResponseEntity<?> createElectricVehicle(@RequestBody VehicleDto vehicleDto) {
         try {
+            if (vehicleDto.getVin() == null || vehicleDto.getLicensePlate() == null || 
+                vehicleDto.getBatteryType() == null || vehicleDto.getBatteryVoltage() == null || 
+                vehicleDto.getBatteryCurrent() == null) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("message", "Required fields cannot be null (VIN, license plate, battery type, voltage, current)");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            }
+            
             ElectricVehicle vehicle = new ElectricVehicle();
             vehicle.setVin(vehicleDto.getVin());
             vehicle.setLicensePlate(vehicleDto.getLicensePlate());
@@ -115,13 +134,21 @@ public class VehicleController {
             ElectricVehicle saved = vehicleService.saveElectricVehicle(vehicle);
             return ResponseEntity.status(HttpStatus.CREATED).body(convertToDto(saved));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
         }
     }
 
     @PostMapping("/gas")
-    public ResponseEntity<VehicleDto> createGasVehicle(@RequestBody VehicleDto vehicleDto) {
+    public ResponseEntity<?> createGasVehicle(@RequestBody VehicleDto vehicleDto) {
         try {
+            if (vehicleDto.getVin() == null || vehicleDto.getLicensePlate() == null) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("message", "Required fields cannot be null (VIN, license plate)");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            }
+            
             GasVehicle vehicle = new GasVehicle();
             vehicle.setVin(vehicleDto.getVin());
             vehicle.setLicensePlate(vehicleDto.getLicensePlate());
@@ -136,12 +163,14 @@ public class VehicleController {
             GasVehicle saved = vehicleService.saveGasVehicle(vehicle);
             return ResponseEntity.status(HttpStatus.CREATED).body(convertToDto(saved));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<VehicleDto> updateVehicle(@PathVariable Long id, @RequestBody VehicleDto vehicleDto) {
+    public ResponseEntity<?> updateVehicle(@PathVariable Long id, @RequestBody VehicleDto vehicleDto) {
         try {
             Vehicle existingVehicle = vehicleService.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("Vehicle not found with id: " + id));
@@ -173,7 +202,9 @@ public class VehicleController {
             Vehicle updated = vehicleService.saveVehicle(existingVehicle);
             return ResponseEntity.ok(convertToDto(updated));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
@@ -212,17 +243,33 @@ public class VehicleController {
     }
 
     @PostMapping("/{id}/convert-to-gas")
-    public ResponseEntity<VehicleDto> convertElectricToGas(
+    public ResponseEntity<?> convertElectricToGas(
             @PathVariable Long id, @RequestBody String[] fuelTypeNames) {
         try {
+            if (fuelTypeNames == null || fuelTypeNames.length == 0) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("message", "At least one fuel type must be specified");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            }
+            
             Set<FuelType> fuelTypes = Arrays.stream(fuelTypeNames)
                     .map(FuelType::valueOf)
                     .collect(Collectors.toSet());
             
             GasVehicle converted = vehicleService.convertElectricToGas(id, fuelTypes);
             return ResponseEntity.ok(convertToDto(converted));
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (ObjectOptimisticLockingFailureException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "The vehicle was modified by another user. Please refresh and try again.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (IllegalStateException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
         }

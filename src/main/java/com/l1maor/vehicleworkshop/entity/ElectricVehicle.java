@@ -5,6 +5,9 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PostPersist;
+import jakarta.persistence.PrePersist;
 import org.hibernate.envers.Audited;
 
 @Entity
@@ -24,6 +27,7 @@ public class ElectricVehicle extends Vehicle {
 
     public ElectricVehicle() {
         super();
+        setType(VehicleType.ELECTRIC);
     }
 
     public ElectricVehicle(String vin, String licensePlate, BatteryType batteryType,
@@ -32,6 +36,7 @@ public class ElectricVehicle extends Vehicle {
         this.batteryType = batteryType;
         this.batteryVoltage = batteryVoltage;
         this.batteryCurrent = batteryCurrent;
+        setType(VehicleType.ELECTRIC);
     }
 
     public BatteryType getBatteryType() {
@@ -56,5 +61,12 @@ public class ElectricVehicle extends Vehicle {
 
     public void setBatteryCurrent(Double batteryCurrent) {
         this.batteryCurrent = batteryCurrent;
+    }
+    
+    @PostLoad
+    @PostPersist
+    @PrePersist
+    public void ensureType() {
+        setType(VehicleType.ELECTRIC);
     }
 }

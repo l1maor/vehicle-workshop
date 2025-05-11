@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.EnumSet;
 
 @Service
 public class VehicleServiceImpl implements VehicleService {
@@ -153,15 +154,21 @@ public class VehicleServiceImpl implements VehicleService {
         history.setOriginalVoltage(electricVehicle.getBatteryVoltage());
         history.setOriginalCurrent(electricVehicle.getBatteryCurrent());
         conversionHistoryRepository.save(history);
-
+        
+        // Create new Gasoline vehicle and preserve version for optimistic locking
         GasVehicle gasVehicle = new GasVehicle();
         gasVehicle.setId(vehicle.getId());
         gasVehicle.setVin(vehicle.getVin());
         gasVehicle.setLicensePlate(vehicle.getLicensePlate());
-        gasVehicle.setFuelTypes(newFuelTypes);
-
+        gasVehicle.setVersion(vehicle.getVersion());
+        gasVehicle.setFuelTypes(newFuelTypes != null && !newFuelTypes.isEmpty() ? 
+                                 newFuelTypes : 
+                                 EnumSet.of(FuelType.B83, FuelType.B90)); // Default fuel types if none provided
+        
+        // Save the converted vehicle directly without deleting first
+        // This will force an update rather than delete+insert which can cause issues
         GasVehicle saved = (GasVehicle) vehicleRepository.save(gasVehicle);
-
+        
         sseService.broadcastVehicleUpdate(saved);
         
         return saved;
@@ -197,37 +204,49 @@ public class VehicleServiceImpl implements VehicleService {
     private VehicleRegistrationDto createRegistrationInfo(Vehicle vehicle) {
         VehicleRegistrationDto dto = new VehicleRegistrationDto();
         dto.setId(vehicle.getId());
-        dto.setType(vehicle.getType());
         
         boolean isConvertible = isVehicleConvertible(vehicle);
         dto.setConvertible(isConvertible);
-
+    
         String registrationInfo;
+        VehicleType vehicleType;
+        
         if (vehicle instanceof DieselVehicle) {
             DieselVehicle dieselVehicle = (DieselVehicle) vehicle;
+            vehicleType = VehicleType.DIESEL;
             registrationInfo = dieselVehicle.getLicensePlate() + " + " + 
-                    dieselVehicle.getInjectionPumpType().name();
+                    (dieselVehicle.getInjectionPumpType() != null ? 
+                     dieselVehicle.getInjectionPumpType().name() : "UNKNOWN");
         } else if (vehicle instanceof ElectricVehicle) {
             ElectricVehicle electricVehicle = (ElectricVehicle) vehicle;
+            vehicleType = VehicleType.ELECTRIC;
             registrationInfo = electricVehicle.getVin() + " + " +
                     electricVehicle.getBatteryVoltage() + "V + " +
                     electricVehicle.getBatteryCurrent() + "A + " +
-                    electricVehicle.getBatteryType().name();
-
+                    (electricVehicle.getBatteryType() != null ? 
+                     electricVehicle.getBatteryType().name() : "UNKNOWN");
+    
             dto.setConversionData(electricVehicle.getLicensePlate() + " + POTENTIAL FUELS: " +
                     String.join(", ", Arrays.stream(FuelType.values())
                             .map(Enum::name)
                             .collect(Collectors.toList())));
         } else if (vehicle instanceof GasVehicle) {
             GasVehicle gasVehicle = (GasVehicle) vehicle;
-            registrationInfo = gasVehicle.getLicensePlate() + " + FUELS: " +
-                    gasVehicle.getFuelTypes().stream()
-                            .map(Enum::name)
-                            .collect(Collectors.joining(", "));
+            vehicleType = VehicleType.GASOLINE;
+            if (gasVehicle.getFuelTypes() != null && !gasVehicle.getFuelTypes().isEmpty()) {
+                registrationInfo = gasVehicle.getLicensePlate() + " + FUELS: " +
+                        gasVehicle.getFuelTypes().stream()
+                                .map(Enum::name)
+                                .collect(Collectors.joining(", "));
+            } else {
+                registrationInfo = gasVehicle.getLicensePlate() + " + FUELS: UNKNOWN";
+            }
         } else {
+            vehicleType = vehicle.getType() != null ? vehicle.getType() : VehicleType.DIESEL; // Default to DIESEL as fallback
             registrationInfo = "Unknown vehicle type";
         }
         
+        dto.setType(vehicleType);
         dto.setRegistrationInfo(registrationInfo);
         return dto;
     }
