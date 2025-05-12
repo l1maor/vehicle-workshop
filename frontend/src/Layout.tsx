@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Layout as RALayout, AppBar, CheckForApplicationUpdate } from "react-admin";
 import { Typography, Box } from "@mui/material";
+import { Menu } from './Menu';
 
 const CustomAppBar = () => {
   return (
@@ -15,7 +16,7 @@ const CustomAppBar = () => {
 };
 
 export const Layout = ({ children }: { children: ReactNode }) => (
-  <RALayout appBar={CustomAppBar}>
+  <RALayout appBar={CustomAppBar} menu={Menu}>
     {children}
     <CheckForApplicationUpdate />
   </RALayout>

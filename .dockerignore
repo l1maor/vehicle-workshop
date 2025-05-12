@@ -1,0 +1,28 @@
+# Git files
+.git
+.gitignore
+
+# Maven build files
+target/
+
+# Node modules and build files
+frontend/node_modules/
+frontend/.vite/
+frontend/dist/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env*

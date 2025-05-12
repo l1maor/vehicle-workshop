@@ -160,7 +160,7 @@ public class VehicleServiceImpl implements VehicleService {
         
         // Check fuel types
         if (newFuelTypes == null || newFuelTypes.isEmpty()) {
-            newFuelTypes = EnumSet.of(FuelType.B83, FuelType.B90);
+            throw new IllegalArgumentException("Fuel types cannot be empty");
         }
         
         // Use direct SQL update to change the discriminator column

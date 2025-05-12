@@ -3,6 +3,7 @@ import {
   Datagrid,
   TextField,
   DeleteButton,
+  EditButton,
   TextInput,
 } from 'react-admin';
 
@@ -15,6 +16,7 @@ export const RoleList = () => (
     <Datagrid>
       <TextField source="id" />
       <TextField source="name" />
+      <EditButton />
       <DeleteButton />
     </Datagrid>
   </List>

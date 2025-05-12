@@ -24,7 +24,16 @@ export const dataProvider: DataProvider = {
     const url = `${apiUrl}/${resource}?${queryString.stringify(query)}`;
 
     return httpClient(url).then(({ json }) => {
-      // Handle both array responses and objects that might contain arrays
+      // Special handling for the roles resource which has a different format
+      if (resource === 'roles' && json.roles) {
+        // The roles data now includes both id and name
+        return {
+          data: json.roles,
+          total: json.roles.length,
+        };
+      }
+      
+      // Default handling for other resources
       const data = Array.isArray(json) ? json : json.data || json;
       const dataArray = Array.isArray(data) ? data : [data].filter(Boolean);
       
@@ -35,12 +44,36 @@ export const dataProvider: DataProvider = {
     });
   },
 
-  getOne: (resource, params) =>
-    httpClient(`${apiUrl}/${resource}/${params.id}`).then(({ json }) => ({
+  getOne: (resource, params) => {
+    // For roles, we still need to fetch from the list endpoint since there's no GET by ID endpoint
+    if (resource === 'roles') {
+      return httpClient(`${apiUrl}/roles`).then(({ json }) => {
+        // Find the role with matching id from the roles list
+        const paramId = params.id;
+        const role = json.roles.find((r: any) => r.id === parseInt(String(paramId), 10) || String(r.id) === String(paramId));
+        return { data: role || { id: params.id, name: 'Unknown Role' } };
+      });
+    }
+    
+    // Default handling for other resources
+    return httpClient(`${apiUrl}/${resource}/${params.id}`).then(({ json }) => ({
       data: json,
-    })),
+    }));
+  },
 
   getMany: (resource, params) => {
+    // Special handling for roles resource since individual role endpoints don't exist
+    if (resource === 'roles') {
+      return httpClient(`${apiUrl}/roles`).then(({ json }) => {
+        // Filter roles that match the requested ids
+        const matchingRoles = json.roles.filter((r: any) => 
+          params.ids.includes(r.id) || params.ids.includes(String(r.id))
+        );
+        return { data: matchingRoles };
+      });
+    }
+    
+    // Default for other resources
     const query = {
       filter: JSON.stringify({ id: params.ids }),
     };
@@ -67,13 +100,16 @@ export const dataProvider: DataProvider = {
     });
   },
 
-  update: (resource, params) =>
-    httpClient(`${apiUrl}/${resource}/${params.id}`, {
+  update: (resource, params) => {
+    // For roles and all other resources, make a proper PUT request
+    return httpClient(`${apiUrl}/${resource}/${params.id}`, {
       method: 'PUT',
       body: JSON.stringify(params.data),
-    }).then(() => ({ data: params.data })),
+    }).then(({ json }) => ({ data: json || params.data }));
+  },
 
   updateMany: (resource, params) => {
+    // For all resources including roles, make proper PUT requests
     return Promise.all(
       params.ids.map(id =>
         httpClient(`${apiUrl}/${resource}/${id}`, {
@@ -111,17 +147,24 @@ export const dataProvider: DataProvider = {
     });
   },
 
-  delete: (resource, params) =>
-    httpClient(`${apiUrl}/${resource}/${params.id}`, {
+  delete: (resource, params) => {
+    // For all resources including roles, use the DELETE endpoint
+    return httpClient(`${apiUrl}/${resource}/${params.id}`, {
       method: 'DELETE',
-    }).then(({ json }) => ({ data: json })),
+    }).then(({ json }) => ({ data: json || { id: params.id } }));
+  },
 
-  deleteMany: (resource, params) =>
-    Promise.all(
+  deleteMany: (resource, params) => {
+    // For all resources including roles, use the DELETE endpoints
+    return Promise.all(
       params.ids.map(id =>
         httpClient(`${apiUrl}/${resource}/${id}`, {
           method: 'DELETE',
         })
       )
-    ).then(responses => ({ data: responses.map(({ json }) => json.id) })),
+    ).then(responses => ({ data: responses.map(response => {
+      const { json } = response;
+      return json?.id || null;
+    }).filter(id => id !== null) }));
+  },
 };

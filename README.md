@@ -81,17 +81,92 @@ This is a Spring Boot application that provides inventory management for a vehic
 
 ## Setup and Installation
 
-### Prerequisites
+### Prerequisites (Local Development)
 
 - Java 17 or newer
 - PostgreSQL database
 - Maven
+- Node.js and pnpm (for frontend development)
 
-### Configuration
+### Configuration (Local Development)
 
 1. Clone the repository
 2. Configure database connection in `application.properties`
-3. Run the application:
+3. Run the backend application:
 
 ```bash
 mvn spring:boot:run
+```
+
+4. Run the frontend development server (in a separate terminal):
+
+```bash
+cd frontend
+pnpm install
+pnpm dev
+```
+
+### Docker Setup (Production)
+
+1. Ensure Docker and Docker Compose are installed on your system
+2. Build and run the application using Docker Compose with BuildKit enabled:
+
+```bash
+DOCKER_BUILDKIT=1 docker compose up -d
+```
+
+This will:
+- Start a PostgreSQL database container with persistent storage
+- Build the Spring Boot application with the React frontend
+- Serve the application on port 8081 (configurable in docker-compose.yml)
+- Cache both pnpm and Maven dependencies for faster subsequent builds
+
+3. To stop the application:
+
+```bash
+docker compose down
+```
+
+4. For a clean rebuild of the application (ignoring caches):
+
+```bash
+DOCKER_BUILDKIT=1 docker compose build --no-cache
+DOCKER_BUILDKIT=1 docker compose up -d
+```
+
+5. For incremental builds (using dependency caching):
+
+```bash
+DOCKER_BUILDKIT=1 docker compose build
+DOCKER_BUILDKIT=1 docker compose up -d
+```
+
+### Dependency Caching
+
+The Docker build has been optimized with BuildKit cache mounts for both package managers:
+
+- **Frontend (pnpm)**: Dependencies are cached in a persistent volume at `/pnpm-store`
+- **Backend (Maven)**: Dependencies are cached in the host's Maven repository through a BuildKit cache mount
+
+This significantly speeds up builds when only source code changes, not dependencies.
+
+### Docker Architecture
+
+The application uses a multi-stage Docker build process to optimize the final image size and performance:
+
+1. **Frontend Build Stage**: 
+   - Uses Node.js 18 with Alpine
+   - Builds the React application with pnpm
+   - Outputs optimized static assets
+
+2. **Backend Build Stage**:
+   - Uses Maven with Eclipse Temurin JDK 17
+   - Compiles the Spring Boot application
+   - Embeds the frontend build in the Spring static resources directory
+
+3. **Runtime Stage**:
+   - Uses a lightweight JRE 17 Alpine image
+   - Contains only the necessary runtime components
+   - Runs as a non-root user for improved security
+
+The application in Docker exposes the frontend directly from the Spring Boot static resources, eliminating the need for a separate frontend server in production.

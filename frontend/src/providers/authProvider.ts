@@ -58,9 +58,14 @@ const authProvider: AuthProvider = {
   
   checkError: (error) => {
     const status = error.status;
-    if (status === 401 || status === 403) {
+    if (status === 401) {
+      // Only log out for 401 (unauthorized - invalid token)
       localStorage.removeItem('token');
       return Promise.reject();
+    }
+    if (status === 403) {
+      // For 403 (forbidden - insufficient permissions), just stay on the current page
+      return Promise.resolve();
     }
     return Promise.resolve();
   },

@@ -53,6 +53,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Static resources for frontend
+                .requestMatchers(HttpMethod.GET, "/", "/*.html", "/*.js", "/*.css", "/*.ico", "/assets/**", "/manifest.json").permitAll()
+                .requestMatchers(HttpMethod.GET, "/index.html").permitAll()
                 // OpenAPI endpoints
                 .requestMatchers("/swagger-ui/**").permitAll()
                 .requestMatchers("/v3/api-docs/**").permitAll()

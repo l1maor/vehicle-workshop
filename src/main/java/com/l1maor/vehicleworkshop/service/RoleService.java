@@ -11,4 +11,5 @@ public interface RoleService {
     Optional<Role> findById(Long id);
     Optional<Role> findByName(String name);
     List<Role> findAllRoles();
-} 
+    Role updateRole(Long id, String name);
+}
