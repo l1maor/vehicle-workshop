@@ -4,17 +4,17 @@ import {
   TextField,
   EditButton,
   DeleteButton,
-  TextInput,
   SelectInput,
   FunctionField,
   Button,
   useRecordContext,
   FilterButton,
-  FilterForm,
   SearchInput,
   TopToolbar,
+  CreateButton,
+  useRedirect,
 } from 'react-admin';
-import { Link } from 'react-router-dom';
+
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ElectricCarIcon from '@mui/icons-material/ElectricCar';
 
@@ -33,18 +33,25 @@ const VehicleFilters = [
 const ListActions = () => (
   <TopToolbar>
     <FilterButton />
+    <CreateButton />
   </TopToolbar>
 );
 
 const ConvertToGasButton = () => {
   const record = useRecordContext();
+  const redirect = useRedirect();
   
   if (!record || record.type !== 'ELECTRIC') return null;
   
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    redirect(`/vehicles/${record.id}/convert`);
+  };
+  
   return (
     <Button
-      component={Link}
-      to={`/vehicles/${record.id}/convert`}
+      onClick={handleClick}
       label="Convert to Gas"
       startIcon={<ElectricCarIcon />}
     />
@@ -53,12 +60,16 @@ const ConvertToGasButton = () => {
 
 const RegistrationButton = () => {
   const record = useRecordContext();
+  const redirect = useRedirect();
   if (!record) return null;
+  
+  const handleClick = () => {
+    redirect(`/vehicles/${record.id}/registration`);
+  };
   
   return (
     <Button
-      component={Link}
-      to={`/vehicles/${record.id}/registration`}
+      onClick={handleClick}
       label="Registration"
       startIcon={<VisibilityIcon />}
     />

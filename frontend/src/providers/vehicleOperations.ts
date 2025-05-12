@@ -1,7 +1,18 @@
 import { fetchUtils } from 'react-admin';
 
 const apiUrl = '/api';
-const httpClient = fetchUtils.fetchJson;
+
+// Custom HTTP client that includes the auth token
+const httpClient = (url: string, options: any = {}) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    options.headers = new Headers({ 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}` 
+    });
+  }
+  return fetchUtils.fetchJson(url, options);
+};
 
 export const vehicleOperations = {
   convertToGas: (vehicleId: string, fuelTypes: string[]) => {

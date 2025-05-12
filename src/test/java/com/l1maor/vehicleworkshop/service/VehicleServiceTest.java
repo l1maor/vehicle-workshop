@@ -5,6 +5,7 @@ import com.l1maor.vehicleworkshop.dto.VehicleRegistrationDto;
 import com.l1maor.vehicleworkshop.entity.*;
 import com.l1maor.vehicleworkshop.repository.ConversionHistoryRepository;
 import com.l1maor.vehicleworkshop.repository.VehicleRepository;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,9 @@ public class VehicleServiceTest {
     @Mock
     private SseService sseService;
 
+    @Mock
+    private EntityManager entityManager;
+
     private VehicleService vehicleService;
     private TestDataGenerator dataGenerator;
 
@@ -43,7 +47,8 @@ public class VehicleServiceTest {
                 vehicleRepository, 
                 conversionHistoryRepository,
                 eventPublisher,
-                sseService
+                sseService,
+                entityManager
         );
         
         dataGenerator = new TestDataGenerator();

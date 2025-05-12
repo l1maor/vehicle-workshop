@@ -17,17 +17,20 @@ const httpClient = (url: string, options: any = {}) => {
 
 export const dataProvider: DataProvider = {
   getList: (resource, params) => {
-    const { page, perPage } = params.pagination;
-    const { field, order } = params.sort;
+    // Pagination and sorting could be used for server-side implementation if needed
     const query = {
       ...fetchUtils.flattenObject(params.filter),
     };
     const url = `${apiUrl}/${resource}?${queryString.stringify(query)}`;
 
-    return httpClient(url).then(({ headers, json }) => {
+    return httpClient(url).then(({ json }) => {
+      // Handle both array responses and objects that might contain arrays
+      const data = Array.isArray(json) ? json : json.data || json;
+      const dataArray = Array.isArray(data) ? data : [data].filter(Boolean);
+      
       return {
-        data: json,
-        total: json.length,
+        data: dataArray,
+        total: dataArray.length,
       };
     });
   },
@@ -46,18 +49,20 @@ export const dataProvider: DataProvider = {
   },
 
   getManyReference: (resource, params) => {
-    const { page, perPage } = params.pagination;
-    const { field, order } = params.sort;
     const query = {
       ...fetchUtils.flattenObject(params.filter),
       [params.target]: params.id,
     };
     const url = `${apiUrl}/${resource}?${queryString.stringify(query)}`;
 
-    return httpClient(url).then(({ headers, json }) => {
+    return httpClient(url).then(({ json }) => {
+      // Handle both array responses and objects that might contain arrays
+      const data = Array.isArray(json) ? json : json.data || json;
+      const dataArray = Array.isArray(data) ? data : [data].filter(Boolean);
+      
       return {
-        data: json,
-        total: json.length,
+        data: dataArray,
+        total: dataArray.length,
       };
     });
   },
@@ -66,12 +71,9 @@ export const dataProvider: DataProvider = {
     httpClient(`${apiUrl}/${resource}/${params.id}`, {
       method: 'PUT',
       body: JSON.stringify(params.data),
-    }).then(({ json }) => ({ data: params.data })),
+    }).then(() => ({ data: params.data })),
 
   updateMany: (resource, params) => {
-    const query = {
-      filter: JSON.stringify({ id: params.ids }),
-    };
     return Promise.all(
       params.ids.map(id =>
         httpClient(`${apiUrl}/${resource}/${id}`, {
@@ -79,7 +81,10 @@ export const dataProvider: DataProvider = {
           body: JSON.stringify(params.data),
         })
       )
-    ).then(responses => ({ data: responses.map(({ json }) => json.id) }));
+    ).then(responses => ({ data: responses.map(response => {
+      const { json } = response;
+      return json?.id || null;
+    }).filter(id => id !== null) }));
   },
 
   create: (resource, params) => {
@@ -99,9 +104,11 @@ export const dataProvider: DataProvider = {
     return httpClient(url, {
       method: 'POST',
       body: JSON.stringify(params.data),
-    }).then(({ json }) => ({
-      data: { ...params.data, id: json.id },
-    }));
+    }).then(({ json }) => {
+      const resourceWithId = { ...params.data };
+      if (json && json.id) resourceWithId.id = json.id;
+      return { data: resourceWithId };
+    });
   },
 
   delete: (resource, params) =>

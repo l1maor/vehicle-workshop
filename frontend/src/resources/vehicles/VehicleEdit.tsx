@@ -10,7 +10,9 @@ import {
   FormDataConsumer
 } from 'react-admin';
 
-export const VehicleEdit = () => (
+export const VehicleEdit = () => {
+  console.log('RENDER :: VehicleEdit');
+  return (
   <Edit>
     <SimpleForm>
       <TextInput source="id" disabled />
@@ -92,4 +94,5 @@ export const VehicleEdit = () => (
       </FormDataConsumer>
     </SimpleForm>
   </Edit>
-);
+  );
+}

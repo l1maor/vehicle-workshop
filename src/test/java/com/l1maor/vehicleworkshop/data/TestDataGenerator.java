@@ -2,6 +2,7 @@ package com.l1maor.vehicleworkshop.data;
 
 import com.l1maor.vehicleworkshop.config.TestConfig;
 import com.l1maor.vehicleworkshop.entity.*;
+import com.l1maor.vehicleworkshop.repository.ConversionHistoryRepository;
 import com.l1maor.vehicleworkshop.repository.RoleRepository;
 import com.l1maor.vehicleworkshop.repository.UserRepository;
 import com.l1maor.vehicleworkshop.repository.VehicleRepository;
@@ -28,6 +29,9 @@ public class TestDataGenerator {
 
     @Autowired
     private RoleRepository roleRepository;
+    
+    @Autowired
+    private ConversionHistoryRepository conversionHistoryRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -138,6 +142,9 @@ public class TestDataGenerator {
      */
     @Transactional
     public void clearDatabase() {
+        // Delete conversion history records first since they reference vehicles
+        conversionHistoryRepository.deleteAll();
+        // Now we can safely delete vehicles
         vehicleRepository.deleteAll();
         userRepository.deleteAll();
         roleRepository.deleteAll();

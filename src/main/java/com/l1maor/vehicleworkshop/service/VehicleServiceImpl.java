@@ -1,7 +1,6 @@
 package com.l1maor.vehicleworkshop.service;
 
 import com.l1maor.vehicleworkshop.dto.VehicleRegistrationDto;
-import com.l1maor.vehicleworkshop.entity.BatteryType;
 import com.l1maor.vehicleworkshop.entity.ConversionHistory;
 import com.l1maor.vehicleworkshop.entity.DieselVehicle;
 import com.l1maor.vehicleworkshop.entity.ElectricVehicle;
@@ -32,15 +31,18 @@ public class VehicleServiceImpl implements VehicleService {
     private final ConversionHistoryRepository conversionHistoryRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final SseService sseService;
+    private final jakarta.persistence.EntityManager entityManager;
 
     public VehicleServiceImpl(VehicleRepository vehicleRepository, 
                             ConversionHistoryRepository conversionHistoryRepository,
                             ApplicationEventPublisher eventPublisher,
-                            SseService sseService) {
+                            SseService sseService,
+                            jakarta.persistence.EntityManager entityManager) {
         this.vehicleRepository = vehicleRepository;
         this.conversionHistoryRepository = conversionHistoryRepository;
         this.eventPublisher = eventPublisher;
         this.sseService = sseService;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -148,6 +150,7 @@ public class VehicleServiceImpl implements VehicleService {
         
         ElectricVehicle electricVehicle = (ElectricVehicle) vehicle;
 
+        // Save conversion history
         ConversionHistory history = new ConversionHistory();
         history.setVehicle(vehicle);
         history.setOriginalBatteryType(electricVehicle.getBatteryType());
@@ -155,23 +158,34 @@ public class VehicleServiceImpl implements VehicleService {
         history.setOriginalCurrent(electricVehicle.getBatteryCurrent());
         conversionHistoryRepository.save(history);
         
-        // Create new Gasoline vehicle and preserve version for optimistic locking
-        GasVehicle gasVehicle = new GasVehicle();
-        gasVehicle.setId(vehicle.getId());
-        gasVehicle.setVin(vehicle.getVin());
-        gasVehicle.setLicensePlate(vehicle.getLicensePlate());
-        gasVehicle.setVersion(vehicle.getVersion());
-        gasVehicle.setFuelTypes(newFuelTypes != null && !newFuelTypes.isEmpty() ? 
-                                 newFuelTypes : 
-                                 EnumSet.of(FuelType.B83, FuelType.B90)); // Default fuel types if none provided
+        // Check fuel types
+        if (newFuelTypes == null || newFuelTypes.isEmpty()) {
+            newFuelTypes = EnumSet.of(FuelType.B83, FuelType.B90);
+        }
         
-        // Save the converted vehicle directly without deleting first
-        // This will force an update rather than delete+insert which can cause issues
-        GasVehicle saved = (GasVehicle) vehicleRepository.save(gasVehicle);
+        // Use direct SQL update to change the discriminator column
+        // This will force an UPDATE instead of INSERT+DELETE
+        entityManager.createNativeQuery("UPDATE vehicles SET type = 'GASOLINE', battery_type = NULL, " +
+                        "battery_voltage = NULL, battery_current = NULL " +
+                        "WHERE id = :id")
+            .setParameter("id", vehicleId)
+            .executeUpdate();
         
-        sseService.broadcastVehicleUpdate(saved);
+        // Clear persistence context to avoid stale data
+        entityManager.flush();
+        entityManager.clear();
         
-        return saved;
+        // Re-fetch the vehicle, now as a GasVehicle
+        GasVehicle gasVehicle = (GasVehicle) vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new EntityNotFoundException("Vehicle not found after conversion: " + vehicleId));
+        
+        // Set the fuel types
+        gasVehicle.setFuelTypes(newFuelTypes);
+        gasVehicle = (GasVehicle) vehicleRepository.save(gasVehicle);
+        
+        sseService.broadcastVehicleUpdate(gasVehicle);
+        
+        return gasVehicle;
     }
     
     @Override

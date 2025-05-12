@@ -33,10 +33,12 @@ const authProvider: AuthProvider = {
     
     // Validate token with backend
     return fetch('/api/auth/validate', {
-      headers: new Headers({ 
+      method: 'POST',
+      headers: new Headers({
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}` 
       }),
+      body: JSON.stringify({ token }),
     })
       .then(response => {
         if (response.status < 200 || response.status >= 300) {

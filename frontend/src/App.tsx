@@ -1,4 +1,4 @@
-import { Admin, Resource } from "react-admin";
+import { Admin, Resource, CustomRoutes } from "react-admin";
 import { Layout } from "./Layout";
 import { dataProvider } from "./providers/dataProvider";
 import authProvider from "./providers/authProvider";
@@ -22,7 +22,9 @@ export const App = () => (
     authProvider={authProvider}
     dashboard={Dashboard}
   >
-    {customRoutes}
+    <CustomRoutes>
+      {customRoutes}
+    </CustomRoutes>
     <Resource
       name="vehicles"
       list={VehicleList}
