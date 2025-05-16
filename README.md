@@ -1,5 +1,25 @@
-# This project uses java 17
-Easily run the project with `docker compose up`
+# Vehicle Workshop Management System
+
+## Technology Stack
+- Java 17
+- Spring Boot
+- PostgreSQL
+- React frontend
+
+## Running the Application
+```bash
+docker compose up
+```
+
+## Accessing the Application
+The web interface is available at http://localhost:8080
+
+## Authentication
+Default credentials:
+| Username | Password | Role  |
+|----------|----------|-------|
+| admin    | admin    | Admin |
+| user     | user     | User  |
 
 # Project specification and requirements
 A workshop company records each incoming vehicle's license plate and VIN number. It accepts diesel, gasoline and electric vehicles. For diesel vehicles, it also records the type of injection pump used, which can be linear or rotary. For electric vehicles, it records the type of battery (GEL or LITHIUM) and the battery voltage and current. In the case of gasoline vehicles, the type of fuel used is recorded, which may be B83, B90, B94 or B100, or a combination of these.
@@ -21,107 +41,34 @@ In case one of the vehicles is reconvertible, in addition to the registration in
 
 Una empresa de talleres registra de cada vehículo que entra su matrícula y el número de identificación (VIN). Admite vehículos de diesel, gasolina y eléctricos. De los vehículos de diesel registra además el tipo de bomba de inyección que usa, la cual puede ser lineal o rotatoria. De los eléctricos registra el tipo de batería (GEL o LITIO) y el voltaje y la corriente de la batería. En el caso de los de gasolina se registra el tipo de combustible que usa, que puede ser B83, B90, B94 o B100, o una combinación de estos.
 
-Los vehículos pueden ser reconvertidos o no, o sea, llevados de un tipo de combustible a otro. La empresa solo admite reconversión de vehículos eléctricos a gasolina.
+Los vehículos pueden ser reconvertibles o no, es decir, reconvertidos de un tipo de combustible a otro. La empresa solamente soporta la reconversión de vehículos eléctricos a gasolina.
 
-La empresa desea contar con una aplicación web mediante la cuál pueda realizar las siguientes operaciones:
+A la empresa le gustaría tener una aplicación web a través de la cual pueda realizar las siguientes operaciones:
 
-•⁠  ⁠Obtener el inventario de vehículos en el taller. Poder realizar búsqueda sobre el inventario por el tipo de vehículo.
-•⁠  Dar entrada y salida de vehículos, evitar duplicados con la misma matrícula y VIN
-•⁠  ⁠Obtener la información de registro de los vehículos en el inventario. Esta información se codifica de la siguiente manera:
-   Vehículos diesel: Matrícula + tipo de bomba de inyección
-   Vehículos eléctricos: VIN + Voltaje + Corriente + Tipo de batería
-   Vehículos de gasolina: Matricula + Tipos de combustible que usa.
+- Obtener el inventario de vehículos en taller. Poder buscar el inventario por tipo de vehículo.
+- Registrar la entrada y salida de vehículos, evitar duplicados con la misma matrícula y VIN.
+- Obtener la información de matrícula de los vehículos en inventario. Esta información se codifica del siguiente modo:
+   Vehículos diésel: Matrícula + tipo de bomba de inyección.
+   Vehículos eléctricos: VIN + Voltaje + Corriente + Tipo de Batería
+   Vehículos gasolina: Matrícula + Tipo de combustible que usa.
 
-En caso que uno de los vehículos sea reconvertible, además de la información de registro se debe obtener los datos de reconversión: Matrícula + tipo de combustible que usará luego de reconvertido.
+En caso de que alguno de los vehículos sea reconvertible, además de la información de matrícula se debe obtener los datos de reconversión: Matrícula + tipo de combustible que usará el vehículo tras la reconversión.
 
-# Vehicle Workshop Inventory Management System
+# Dockerization
 
-This is a Spring Boot application that provides inventory management for a vehicle workshop, with features like user authentication, vehicle tracking, and conversion history.
+The project has been containerized for easy development and deployment.
 
-## Features
+## Docker Setup
 
-- **User Management**: Secure authentication and role-based access control (ADMIN, USER).
-- **Vehicle Inventory**: Track different types of vehicles (Diesel, Electric, Gasoline).
-- **Conversion Tracking**: Record history when electric vehicles are converted to gasoline.
-- **Optimistic Locking**: Prevent concurrent updates to the same vehicle.
-- **Audit Trail**: Track all entity changes with Hibernate Envers.
+The containerization process follows modern best practices:
 
-## Technology Stack
+1. Multi-stage build process to optimize final image size
+2. Integration of React frontend and Spring Boot backend in a single container
+3. PostgreSQL database container with data persistence
+4. Environment variable configuration
+5. Proper dependency caching for faster builds
 
-- **Backend**: Spring Boot 3.x
-- **Database**: PostgreSQL
-- **Security**: Spring Security
-- **ORM**: Hibernate with JPA
-- **API**: RESTful endpoints
-- **Auditing**: Hibernate Envers
-
-## API Endpoints
-
-### Vehicle Management
-
-- `GET /api/vehicles` - List all vehicles
-- `GET /api/vehicles/paginated` - List all vehicles with pagination
-- `GET /api/vehicles/{id}` - Get a specific vehicle
-- `GET /api/vehicles/type/{type}` - Get vehicles by type
-- `GET /api/vehicles/type/{type}/paginated` - Get vehicles by type with pagination
-- `POST /api/vehicles/diesel` - Create a diesel vehicle
-- `POST /api/vehicles/electric` - Create an electric vehicle
-- `POST /api/vehicles/gas` - Create a gas vehicle
-- `PUT /api/vehicles/{id}` - Update a vehicle
-- `DELETE /api/vehicles/{id}` - Delete a vehicle
-- `POST /api/vehicles/{id}/convert-to-gas` - Convert an electric vehicle to gas
-- `GET /api/vehicles/stream` - SSE endpoint for real-time updates
-
-### Registration Information
-
-- `GET /api/vehicles/{id}/registration` - Get registration info for a specific vehicle
-- `GET /api/vehicles/registration` - Get all vehicle registration information
-- `GET /api/vehicles/registration/paginated` - Get paginated vehicle registration information
-
-### Conversion History
-
-- `GET /api/conversion-history/vehicle/{id}` - Get conversion history for a specific vehicle
-- `GET /api/conversion-history/vehicle/{id}/paginated` - Get paginated conversion history for a vehicle
-- `GET /api/conversion-history/all/paginated` - Get all conversion history with pagination
-
-### User Management (Admin only)
-
-- `GET /api/users` - List all users
-- `GET /api/users/paginated` - List all users with pagination
-- `GET /api/users/{id}` - Get a specific user
-- `GET /api/users/profile` - Get current user profile
-- `POST /api/users` - Create a new user
-- `PUT /api/users/{id}` - Update a user
-- `DELETE /api/users/{id}` - Delete a user
-
-## Setup and Installation
-
-### Prerequisites (Local Development)
-
-- Java 17 or newer
-- PostgreSQL database
-- Maven
-- Node.js and pnpm (for frontend development)
-
-### Configuration (Local Development)
-
-1. Clone the repository
-2. Configure database connection in `application.properties`
-3. Run the backend application:
-
-```bash
-mvn spring:boot:run
-```
-
-4. Run the frontend development server (in a separate terminal):
-
-```bash
-cd frontend
-pnpm install
-pnpm dev
-```
-
-### Docker Setup (Production)
+## How to Run with Docker (Production)
 
 1. Ensure Docker and Docker Compose are installed on your system
 2. Build and run the application using Docker Compose with BuildKit enabled:
