@@ -1,6 +1,7 @@
 # This project uses java 17
+Easily run the project with `docker compose up`
 
-# Project specification and requisites
+# Project specification and requirements
 A workshop company records each incoming vehicle's license plate and VIN number. It accepts diesel, gasoline and electric vehicles. For diesel vehicles, it also records the type of injection pump used, which can be linear or rotary. For electric vehicles, it records the type of battery (GEL or LITHIUM) and the battery voltage and current. In the case of gasoline vehicles, the type of fuel used is recorded, which may be B83, B90, B94 or B100, or a combination of these.
 
 The vehicles can be converted or not, that is, converted from one type of fuel to another. The company only supports the conversion of electric vehicles to gasoline.
@@ -10,9 +11,9 @@ The company would like to have a web application through which it can perform th
 - Obtain the inventory of vehicles in the workshop. To be able to search the inventory by vehicle type.
 - Check in and check out vehicles, avoid duplicates with the same license plate and VIN.
 - Obtain the registration information of the vehicles in the inventory. This information is coded as follows:
-Diesel vehicles: License plate + type of injection pump.
-Electric vehicles: VIN + Voltage + Current + Battery Type
-Gasoline vehicles: License plate + Type of fuel used.
+   Diesel vehicles: License plate + type of injection pump.
+   Electric vehicles: VIN + Voltage + Current + Battery Type
+   Gasoline vehicles: License plate + Type of fuel used.
 
 In case one of the vehicles is reconvertible, in addition to the registration information, you must obtain the reconversion data: License plate + type of fuel to be used by the vehicle after conversion.
 
@@ -27,9 +28,9 @@ La empresa desea contar con una aplicación web mediante la cuál pueda realizar
 •⁠  ⁠Obtener el inventario de vehículos en el taller. Poder realizar búsqueda sobre el inventario por el tipo de vehículo.
 •⁠  Dar entrada y salida de vehículos, evitar duplicados con la misma matrícula y VIN
 •⁠  ⁠Obtener la información de registro de los vehículos en el inventario. Esta información se codifica de la siguiente manera:
-Vehículos diesel: Matrícula + tipo de bomba de inyección
-Vehículos eléctricos: VIN + Voltaje + Corriente + Tipo de batería
-Vehículos de gasolina: Matricula + Tipos de combustible que usa.
+   Vehículos diesel: Matrícula + tipo de bomba de inyección
+   Vehículos eléctricos: VIN + Voltaje + Corriente + Tipo de batería
+   Vehículos de gasolina: Matricula + Tipos de combustible que usa.
 
 En caso que uno de los vehículos sea reconvertible, además de la información de registro se debe obtener los datos de reconversión: Matrícula + tipo de combustible que usará luego de reconvertido.
 
@@ -43,7 +44,6 @@ This is a Spring Boot application that provides inventory management for a vehic
 - **Vehicle Inventory**: Track different types of vehicles (Diesel, Electric, Gasoline).
 - **Conversion Tracking**: Record history when electric vehicles are converted to gasoline.
 - **Optimistic Locking**: Prevent concurrent updates to the same vehicle.
-- **Real-time Updates**: Get live inventory changes via Server-Sent Events (SSE).
 - **Audit Trail**: Track all entity changes with Hibernate Envers.
 
 ## Technology Stack
@@ -53,7 +53,6 @@ This is a Spring Boot application that provides inventory management for a vehic
 - **Security**: Spring Security
 - **ORM**: Hibernate with JPA
 - **API**: RESTful endpoints
-- **Real-time**: Server-Sent Events (SSE)
 - **Auditing**: Hibernate Envers
 
 ## API Endpoints
@@ -61,20 +60,36 @@ This is a Spring Boot application that provides inventory management for a vehic
 ### Vehicle Management
 
 - `GET /api/vehicles` - List all vehicles
+- `GET /api/vehicles/paginated` - List all vehicles with pagination
 - `GET /api/vehicles/{id}` - Get a specific vehicle
+- `GET /api/vehicles/type/{type}` - Get vehicles by type
+- `GET /api/vehicles/type/{type}/paginated` - Get vehicles by type with pagination
 - `POST /api/vehicles/diesel` - Create a diesel vehicle
 - `POST /api/vehicles/electric` - Create an electric vehicle
 - `POST /api/vehicles/gas` - Create a gas vehicle
 - `PUT /api/vehicles/{id}` - Update a vehicle
 - `DELETE /api/vehicles/{id}` - Delete a vehicle
-- `GET /api/vehicles/type/{type}` - Get vehicles by type
 - `POST /api/vehicles/{id}/convert-to-gas` - Convert an electric vehicle to gas
 - `GET /api/vehicles/stream` - SSE endpoint for real-time updates
+
+### Registration Information
+
+- `GET /api/vehicles/{id}/registration` - Get registration info for a specific vehicle
+- `GET /api/vehicles/registration` - Get all vehicle registration information
+- `GET /api/vehicles/registration/paginated` - Get paginated vehicle registration information
+
+### Conversion History
+
+- `GET /api/conversion-history/vehicle/{id}` - Get conversion history for a specific vehicle
+- `GET /api/conversion-history/vehicle/{id}/paginated` - Get paginated conversion history for a vehicle
+- `GET /api/conversion-history/all/paginated` - Get all conversion history with pagination
 
 ### User Management (Admin only)
 
 - `GET /api/users` - List all users
+- `GET /api/users/paginated` - List all users with pagination
 - `GET /api/users/{id}` - Get a specific user
+- `GET /api/users/profile` - Get current user profile
 - `POST /api/users` - Create a new user
 - `PUT /api/users/{id}` - Update a user
 - `DELETE /api/users/{id}` - Delete a user
@@ -118,7 +133,7 @@ DOCKER_BUILDKIT=1 docker compose up -d
 This will:
 - Start a PostgreSQL database container with persistent storage
 - Build the Spring Boot application with the React frontend
-- Serve the application on port 8081 (configurable in docker-compose.yml)
+- Serve the application on port 8080 (configurable in docker-compose.yml)
 - Cache both pnpm and Maven dependencies for faster subsequent builds
 
 3. To stop the application:

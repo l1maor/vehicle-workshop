@@ -7,6 +7,8 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +17,8 @@ import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 public class OpenApiConfig {
+    
+    private static final Logger logger = LoggerFactory.getLogger(OpenApiConfig.class);
 
     @Value("${springdoc.swagger-ui.path:/swagger-ui.html}")
     private String swaggerPath;
@@ -22,7 +26,10 @@ public class OpenApiConfig {
     @Bean
     @Primary
     public OpenAPI customOpenAPI() {
+        logger.info("Configuring OpenAPI documentation");
         final String securitySchemeName = "bearerAuth";
+        
+        logger.debug("Setting up OpenAPI with JWT security scheme: {}", securitySchemeName);
         
         return new OpenAPI()
                 .info(new Info()
@@ -41,6 +48,7 @@ public class OpenApiConfig {
     
     @Bean
     public GroupedOpenApi publicApi() {
+        logger.info("Creating public API group for OpenAPI documentation");
         return GroupedOpenApi.builder()
                 .group("public-api")
                 .pathsToMatch("/api/**")

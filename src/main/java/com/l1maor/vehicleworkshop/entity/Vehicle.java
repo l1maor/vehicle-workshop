@@ -3,8 +3,6 @@ package com.l1maor.vehicleworkshop.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -13,13 +11,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Version;
-
-import java.util.Set;
-
 import org.hibernate.envers.Audited;
 
 @Entity
@@ -48,11 +42,9 @@ public abstract class Vehicle {
 
     @Version
     private Long version;  // optimistic locking
-
-    @ElementCollection
-    @CollectionTable(name = "vehicle_fuel_types", joinColumns = @JoinColumn(name = "vehicle_id"))
-    @Column(name = "fuel_type")
-    private Set<FuelType> fuelTypes;
+    
+    @Column(name = "convertible", nullable = false)
+    private Boolean convertible = false;  // flag indicating if vehicle can be converted
 
     public Vehicle() {
     }
@@ -60,6 +52,7 @@ public abstract class Vehicle {
     public Vehicle(String vin, String licensePlate) {
         this.vin = vin;
         this.licensePlate = licensePlate;
+        this.convertible = false;
     }
 
     public Long getId() {
@@ -101,12 +94,12 @@ public abstract class Vehicle {
     public void setVersion(Long version) {
         this.version = version;
     }
-
-    public Set<FuelType> getFuelTypes() {
-        return fuelTypes;
+    
+    public Boolean isConvertible() {
+        return convertible;
     }
-
-    public void setFuelTypes(Set<FuelType> fuelTypes) {
-        this.fuelTypes = fuelTypes;
+    
+    public void setConvertible(Boolean convertible) {
+        this.convertible = convertible;
     }
 }

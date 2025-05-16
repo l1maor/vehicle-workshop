@@ -1,54 +1,100 @@
+import React from "react";
 import {
   List,
   Datagrid,
   TextField,
   EditButton,
   DeleteButton,
-  SelectInput,
   FunctionField,
   Button,
   useRecordContext,
   FilterButton,
-  SearchInput,
   TopToolbar,
   CreateButton,
   useRedirect,
-} from 'react-admin';
+  Pagination,
+  useListContext,
+  ListProps,
+  TextInput,
+  SelectInput,
+} from "react-admin";
 
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import ElectricCarIcon from '@mui/icons-material/ElectricCar';
+import { Box } from "@mui/material";
 
-const VehicleFilters = [
-  <SearchInput source="q" alwaysOn />,
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import ElectricCarIcon from "@mui/icons-material/ElectricCar";
+
+const vehicleFilters = [
+  <TextInput
+    source="searchTerm"
+    label="Search VIN or License Plate"
+    alwaysOn
+    key="search"
+  />,
   <SelectInput
     source="type"
+    label="Vehicle Type"
+    emptyText={"All Types"}
+    emptyValue={""}
     choices={[
-      { id: 'DIESEL', name: 'Diesel' },
-      { id: 'ELECTRIC', name: 'Electric' },
-      { id: 'GASOLINE', name: 'Gasoline' },
+      // { id: "ALL", name: "All Types" },
+      { id: "DIESEL", name: "Diesel" },
+      { id: "ELECTRIC", name: "Electric" },
+      { id: "GASOLINE", name: "Gasoline" },
     ]}
+    alwaysOn
+    key="type"
   />,
 ];
 
-const ListActions = () => (
-  <TopToolbar>
-    <FilterButton />
-    <CreateButton />
-  </TopToolbar>
-);
+const EmptyResults = () => {
+  const { filterValues } = useListContext();
+  const hasFilters =
+    filterValues && (filterValues.searchTerm || filterValues.type);
+
+  if (hasFilters) {
+    return (
+      <Box sx={{ p: 2, textAlign: "center" }}>
+        <h3>No vehicles match your search criteria</h3>
+        <p>Try changing your search terms or filters</p>
+        {filterValues.searchTerm && (
+          <p>Search term: {filterValues.searchTerm}</p>
+        )}
+        {filterValues.type && <p>Vehicle type: {filterValues.type}</p>}
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ p: 2, textAlign: "center" }}>
+      <h3>No vehicles found</h3>
+      <p>Add some vehicles to see them here</p>
+      <CreateButton variant="contained" />
+    </Box>
+  );
+};
+
+const ListActions = () => {
+  return (
+    <TopToolbar>
+      <FilterButton />
+      <CreateButton />
+    </TopToolbar>
+  );
+};
 
 const ConvertToGasButton = () => {
   const record = useRecordContext();
   const redirect = useRedirect();
-  
-  if (!record || record.type !== 'ELECTRIC') return null;
-  
+
+  if (!record || record.type !== "ELECTRIC") return null;
+
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     redirect(`/vehicles/${record.id}/convert`);
   };
-  
+
   return (
     <Button
       onClick={handleClick}
@@ -62,11 +108,13 @@ const RegistrationButton = () => {
   const record = useRecordContext();
   const redirect = useRedirect();
   if (!record) return null;
-  
-  const handleClick = () => {
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     redirect(`/vehicles/${record.id}/registration`);
   };
-  
+
   return (
     <Button
       onClick={handleClick}
@@ -76,30 +124,43 @@ const RegistrationButton = () => {
   );
 };
 
-export const VehicleList = () => (
-  <List filters={VehicleFilters} actions={<ListActions />}>
-    <Datagrid>
-      <TextField source="id" />
-      <TextField source="vin" label="VIN" />
-      <TextField source="licensePlate" label="License Plate" />
-      <TextField source="type" />
-      <FunctionField
-        label="Specific Details"
-        render={(record: any) => {
-          if (record.type === 'DIESEL') {
-            return `Injection Pump: ${record.injectionPumpType || 'N/A'}`;
-          } else if (record.type === 'ELECTRIC') {
-            return `Battery: ${record.batteryType || 'N/A'}, Voltage: ${record.batteryVoltage || 'N/A'}, Current: ${record.batteryCurrent || 'N/A'}`;
-          } else if (record.type === 'GASOLINE') {
-            return `Fuel Types: ${record.fuelTypes ? record.fuelTypes.join(', ') : 'N/A'}`;
-          }
-          return 'N/A';
-        }}
-      />
-      <ConvertToGasButton />
-      <RegistrationButton />
-      <EditButton />
-      <DeleteButton />
-    </Datagrid>
-  </List>
-);
+export const VehicleList = (props: ListProps) => {
+  return (
+    <List
+      {...props}
+      actions={<ListActions />}
+      pagination={<Pagination rowsPerPageOptions={[10, 25, 50, 100]} />}
+      perPage={10}
+      sort={{ field: "id", order: "DESC" }}
+      disableSorting={true}
+      empty={<EmptyResults />}
+      filters={vehicleFilters}
+      filterDefaultValues={{ type: "ALL" }}
+    >
+      <Datagrid bulkActionButtons={false} sortable={false}>
+        <TextField source="id" sortable={false} />
+        <TextField source="vin" label="VIN" sortable={false} />
+        <TextField source="licensePlate" label="License Plate" sortable={false} />
+        <TextField source="type" sortable={false} />
+        <FunctionField
+          label="Specific Details"
+          sortable={false}
+          render={(record: Record<string, unknown>) => {
+            if (record.type === "DIESEL") {
+              return `Injection Pump: ${record.injectionPumpType || "N/A"}`;
+            } else if (record.type === "ELECTRIC") {
+              return `Battery: ${record.batteryType || "N/A"}, Voltage: ${typeof record.batteryVoltage === 'number' ? Math.round(record.batteryVoltage) : "N/A"}, Current: ${typeof record.batteryCurrent === 'number' ? Math.round(record.batteryCurrent) : "N/A"}`;
+            } else if (record.type === "GASOLINE") {
+              return `Fuel Types: ${record.fuelTypes ? record.fuelTypes.join?.(", ") : "N/A"}`;
+            }
+            return "N/A";
+          }}
+        />
+        <ConvertToGasButton />
+        <RegistrationButton />
+        <EditButton />
+        <DeleteButton />
+      </Datagrid>
+    </List>
+  );
+};

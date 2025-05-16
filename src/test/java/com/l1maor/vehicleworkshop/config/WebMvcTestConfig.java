@@ -1,13 +1,8 @@
 package com.l1maor.vehicleworkshop.config;
 
-import com.l1maor.vehicleworkshop.repository.RoleRepository;
 import com.l1maor.vehicleworkshop.repository.UserRepository;
 import com.l1maor.vehicleworkshop.repository.VehicleRepository;
 import com.l1maor.vehicleworkshop.repository.ConversionHistoryRepository;
-import com.l1maor.vehicleworkshop.repository.UserRepository;
-import com.l1maor.vehicleworkshop.repository.RoleRepository;
-import com.l1maor.vehicleworkshop.repository.UserRepository;
-import com.l1maor.vehicleworkshop.repository.RoleRepository;
 import com.l1maor.vehicleworkshop.security.CustomUserDetailsService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -16,7 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -57,8 +52,7 @@ public class WebMvcTestConfig {
     @MockBean
     private UserRepository userRepository;
     
-    @MockBean
-    private RoleRepository roleRepository;
+
 
     /**
      * Password encoder for testing

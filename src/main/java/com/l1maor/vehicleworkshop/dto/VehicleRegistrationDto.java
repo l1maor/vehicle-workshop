@@ -15,16 +15,22 @@ public class VehicleRegistrationDto {
     private String registrationInfo;
     private boolean convertible;
     private String conversionData;
+    private boolean hasConversionHistory;
     
     public VehicleRegistrationDto() {
     }
 
     public VehicleRegistrationDto(Long id, VehicleType type, String registrationInfo, boolean convertible, String conversionData) {
+        this(id, type, registrationInfo, convertible, conversionData, false);
+    }
+    
+    public VehicleRegistrationDto(Long id, VehicleType type, String registrationInfo, boolean convertible, String conversionData, boolean hasConversionHistory) {
         this.id = id;
         this.type = type;
         this.registrationInfo = registrationInfo;
         this.convertible = convertible;
         this.conversionData = conversionData;
+        this.hasConversionHistory = hasConversionHistory;
     }
 
     public Long getId() {
@@ -65,5 +71,13 @@ public class VehicleRegistrationDto {
 
     public void setConversionData(String conversionData) {
         this.conversionData = conversionData;
+    }
+    
+    public boolean isHasConversionHistory() {
+        return hasConversionHistory;
+    }
+    
+    public void setHasConversionHistory(boolean hasConversionHistory) {
+        this.hasConversionHistory = hasConversionHistory;
     }
 }

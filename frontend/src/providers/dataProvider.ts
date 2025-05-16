@@ -1,42 +1,81 @@
-import { fetchUtils, DataProvider } from 'react-admin';
-import queryString from 'query-string';
+import { fetchUtils, DataProvider } from "react-admin";
+import queryString from "query-string";
 
-const apiUrl = '/api';
+const apiUrl = "/api";
 
-// Custom HTTP client that includes auth token in all requests
-const httpClient = (url: string, options: any = {}) => {
+type HttpOptions = {
+  headers?: Headers;
+  method?: string;
+  body?: string;
+};
+
+const httpClient = (url: string, options: HttpOptions = {}) => {
   if (!options.headers) {
-    options.headers = new Headers({ Accept: 'application/json' });
+    options.headers = new Headers({ Accept: "application/json" });
   }
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   if (token) {
-    options.headers.set('Authorization', `Bearer ${token}`);
+    options.headers.set("Authorization", `Bearer ${token}`);
   }
   return fetchUtils.fetchJson(url, options);
 };
 
 export const dataProvider: DataProvider = {
   getList: (resource, params) => {
-    // Pagination and sorting could be used for server-side implementation if needed
-    const query = {
-      ...fetchUtils.flattenObject(params.filter),
+    const { page, perPage } = params.pagination || { page: 1, perPage: 10 };
+    const { field, order } = params.sort || { field: "id", order: "ASC" };
+
+    const paginationParams: { page: number; size: number; sort?: string } = {
+      page: page - 1,
+      size: perPage,
     };
-    const url = `${apiUrl}/${resource}?${queryString.stringify(query)}`;
+
+    if (field && field !== "id") {
+      paginationParams.sort = `${field},${order.toLowerCase()}`;
+    }
+
+    let resourcePath;
+
+    if (
+      resource === "vehicles" &&
+      params.filter &&
+      (params.filter.searchTerm || params.filter.type)
+    ) {
+      resourcePath = `${resource}/search`;
+      console.log(
+        "[dataProvider] Using search endpoint for vehicles with filter:",
+        params.filter,
+      );
+    } else if (resource === "vehicles/registration") {
+      resourcePath = resource;
+    } else {
+      resourcePath = `${resource}/paginated`;
+    }
+
+    let modifiedFilter = { ...params.filter };
+    
+    if (modifiedFilter && modifiedFilter.type === 'ALL') {
+      delete modifiedFilter.type;
+    }
+
+    const query = {
+      ...paginationParams,
+      ...fetchUtils.flattenObject(modifiedFilter),
+    };
+
+    const url = `${apiUrl}/${resourcePath}?${queryString.stringify(query)}`;
 
     return httpClient(url).then(({ json }) => {
-      // Special handling for the roles resource which has a different format
-      if (resource === 'roles' && json.roles) {
-        // The roles data now includes both id and name
+      if (json.content && json.totalElements !== undefined) {
         return {
-          data: json.roles,
-          total: json.roles.length,
+          data: json.content,
+          total: json.totalElements,
         };
       }
-      
-      // Default handling for other resources
+
       const data = Array.isArray(json) ? json : json.data || json;
       const dataArray = Array.isArray(data) ? data : [data].filter(Boolean);
-      
+
       return {
         data: dataArray,
         total: dataArray.length,
@@ -45,35 +84,14 @@ export const dataProvider: DataProvider = {
   },
 
   getOne: (resource, params) => {
-    // For roles, we still need to fetch from the list endpoint since there's no GET by ID endpoint
-    if (resource === 'roles') {
-      return httpClient(`${apiUrl}/roles`).then(({ json }) => {
-        // Find the role with matching id from the roles list
-        const paramId = params.id;
-        const role = json.roles.find((r: any) => r.id === parseInt(String(paramId), 10) || String(r.id) === String(paramId));
-        return { data: role || { id: params.id, name: 'Unknown Role' } };
-      });
-    }
-    
-    // Default handling for other resources
-    return httpClient(`${apiUrl}/${resource}/${params.id}`).then(({ json }) => ({
-      data: json,
-    }));
+    return httpClient(`${apiUrl}/${resource}/${params.id}`).then(
+      ({ json }) => ({
+        data: json,
+      }),
+    );
   },
 
   getMany: (resource, params) => {
-    // Special handling for roles resource since individual role endpoints don't exist
-    if (resource === 'roles') {
-      return httpClient(`${apiUrl}/roles`).then(({ json }) => {
-        // Filter roles that match the requested ids
-        const matchingRoles = json.roles.filter((r: any) => 
-          params.ids.includes(r.id) || params.ids.includes(String(r.id))
-        );
-        return { data: matchingRoles };
-      });
-    }
-    
-    // Default for other resources
     const query = {
       filter: JSON.stringify({ id: params.ids }),
     };
@@ -89,10 +107,9 @@ export const dataProvider: DataProvider = {
     const url = `${apiUrl}/${resource}?${queryString.stringify(query)}`;
 
     return httpClient(url).then(({ json }) => {
-      // Handle both array responses and objects that might contain arrays
       const data = Array.isArray(json) ? json : json.data || json;
       const dataArray = Array.isArray(data) ? data : [data].filter(Boolean);
-      
+
       return {
         data: dataArray,
         total: dataArray.length,
@@ -101,70 +118,85 @@ export const dataProvider: DataProvider = {
   },
 
   update: (resource, params) => {
-    // For roles and all other resources, make a proper PUT request
     return httpClient(`${apiUrl}/${resource}/${params.id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(params.data),
     }).then(({ json }) => ({ data: json || params.data }));
   },
 
   updateMany: (resource, params) => {
-    // For all resources including roles, make proper PUT requests
     return Promise.all(
-      params.ids.map(id =>
+      params.ids.map((id) =>
         httpClient(`${apiUrl}/${resource}/${id}`, {
-          method: 'PUT',
+          method: "PUT",
           body: JSON.stringify(params.data),
+        }),
+      ),
+    ).then((responses) => ({
+      data: responses
+        .map((response) => {
+          const { json } = response;
+          return json?.id || null;
         })
-      )
-    ).then(responses => ({ data: responses.map(response => {
-      const { json } = response;
-      return json?.id || null;
-    }).filter(id => id !== null) }));
+        .filter((id) => id !== null),
+    }));
   },
 
   create: (resource, params) => {
     let url = `${apiUrl}/${resource}`;
-    
-    if (resource === 'vehicles') {
+    let dataToSend = { ...params.data };
+
+    if (resource === "vehicles") {
       const vehicleType = params.data.type;
-      if (vehicleType === 'DIESEL') {
+      if (vehicleType === "DIESEL") {
         url = `${apiUrl}/${resource}/diesel`;
-      } else if (vehicleType === 'ELECTRIC') {
+      } else if (vehicleType === "ELECTRIC") {
         url = `${apiUrl}/${resource}/electric`;
-      } else if (vehicleType === 'GASOLINE') {
+      } else if (vehicleType === "GASOLINE") {
         url = `${apiUrl}/${resource}/gas`;
+        
+        // Convert fuelTypes from array of objects to array of strings
+        if (dataToSend.fuelTypes && Array.isArray(dataToSend.fuelTypes)) {
+          dataToSend.fuelTypes = dataToSend.fuelTypes.map((item: any) => item.id);
+        }
       }
     }
 
     return httpClient(url, {
-      method: 'POST',
-      body: JSON.stringify(params.data),
+      method: "POST",
+      body: JSON.stringify(dataToSend),
     }).then(({ json }) => {
+      if (json && json.id) {
+        const result = { ...params.data, ...json };
+        return { data: result };
+      }
+
       const resourceWithId = { ...params.data };
-      if (json && json.id) resourceWithId.id = json.id;
+      if (!resourceWithId.id) resourceWithId.id = Date.now();
       return { data: resourceWithId };
-    });
+    }) as Promise<{ data: Record<string, unknown> }>;
   },
 
   delete: (resource, params) => {
-    // For all resources including roles, use the DELETE endpoint
     return httpClient(`${apiUrl}/${resource}/${params.id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     }).then(({ json }) => ({ data: json || { id: params.id } }));
   },
 
   deleteMany: (resource, params) => {
-    // For all resources including roles, use the DELETE endpoints
     return Promise.all(
-      params.ids.map(id =>
+      params.ids.map((id) =>
         httpClient(`${apiUrl}/${resource}/${id}`, {
-          method: 'DELETE',
+          method: "DELETE",
+        }),
+      ),
+    ).then((responses) => ({
+      data: responses
+        .map((response) => {
+          const { json } = response;
+          return json?.id || null;
         })
-      )
-    ).then(responses => ({ data: responses.map(response => {
-      const { json } = response;
-      return json?.id || null;
-    }).filter(id => id !== null) }));
+        .filter((id) => id !== null),
+    }));
   },
 };

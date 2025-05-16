@@ -35,6 +35,15 @@ public class ConversionHistory {
     private Double originalVoltage;
     
     private Double originalCurrent;
+    
+    @Column(name = "previous_vehicle_type")
+    private String previousVehicleType = "ELECTRIC";
+    
+    @Column(name = "new_vehicle_type")
+    private String newVehicleType = "GASOLINE";
+    
+    @Column(name = "conversion_details")
+    private String conversionDetails;
 
     public ConversionHistory() {
         this.conversionDate = LocalDateTime.now();
@@ -95,5 +104,29 @@ public class ConversionHistory {
 
     public void setOriginalCurrent(Double originalCurrent) {
         this.originalCurrent = originalCurrent;
+    }
+
+    public String getPreviousVehicleType() {
+        return previousVehicleType;
+    }
+
+    public void setPreviousVehicleType(String previousVehicleType) {
+        this.previousVehicleType = previousVehicleType;
+    }
+
+    public String getNewVehicleType() {
+        return newVehicleType;
+    }
+
+    public void setNewVehicleType(String newVehicleType) {
+        this.newVehicleType = newVehicleType;
+    }
+
+    public String getConversionDetails() {
+        return conversionDetails;
+    }
+
+    public void setConversionDetails(String conversionDetails) {
+        this.conversionDetails = conversionDetails;
     }
 }

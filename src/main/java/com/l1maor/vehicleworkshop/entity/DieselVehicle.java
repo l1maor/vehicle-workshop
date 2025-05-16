@@ -16,7 +16,7 @@ import org.hibernate.envers.Audited;
 public class DieselVehicle extends Vehicle {
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "injection_pump_type")
+    @Column(name = "injection_pump_type", length = 10)
     private InjectionPumpType injectionPumpType;
 
     public DieselVehicle() {

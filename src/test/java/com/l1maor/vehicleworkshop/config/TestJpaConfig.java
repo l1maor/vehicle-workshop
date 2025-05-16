@@ -10,5 +10,5 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @TestConfiguration
 @EnableJpaRepositories(basePackages = "com.l1maor.vehicleworkshop.repository")
 public class TestJpaConfig {
-    // Empty configuration class to override the auditing
+    // Empty config class to override the auditing
 }

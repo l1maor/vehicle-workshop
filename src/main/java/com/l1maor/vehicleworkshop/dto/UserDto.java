@@ -1,21 +1,18 @@
 package com.l1maor.vehicleworkshop.dto;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class UserDto {
     private Long id;
     private String username;
     private String password; // Used only for creating/updating users
-    private Set<String> roles = new HashSet<>();
+    private String roleType;
 
     public UserDto() {
     }
 
-    public UserDto(Long id, String username, Set<String> roles) {
+    public UserDto(Long id, String username, String roleType) {
         this.id = id;
         this.username = username;
-        this.roles = roles;
+        this.roleType = roleType;
     }
 
     public Long getId() {
@@ -42,11 +39,11 @@ public class UserDto {
         this.password = password;
     }
     
-    public Set<String> getRoles() {
-        return roles;
+    public String getRoleType() {
+        return roleType;
     }
     
-    public void setRoles(Set<String> roles) {
-        this.roles = roles;
+    public void setRoleType(String roleType) {
+        this.roleType = roleType;
     }
 }

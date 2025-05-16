@@ -31,3 +31,12 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+backup_unused_tests/
+.windsurfrules

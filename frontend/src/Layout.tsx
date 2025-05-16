@@ -1,7 +1,11 @@
 import type { ReactNode } from "react";
-import { Layout as RALayout, AppBar, CheckForApplicationUpdate } from "react-admin";
+import {
+  Layout as RALayout,
+  AppBar,
+  CheckForApplicationUpdate,
+} from "react-admin";
 import { Typography, Box } from "@mui/material";
-import { Menu } from './Menu';
+import { Menu } from "./Menu";
 
 const CustomAppBar = () => {
   return (

@@ -1,0 +1,457 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2025-05-15T15:10:00.000Z",
+  "__export_source": "cascade:vehicle-workshop",
+  "resources": [
+    {
+      "_id": "req_root",
+      "parentId": "wrk_vehicle_workshop",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "name": "Vehicle Workshop API Collection",
+      "description": "Collection for Vehicle Workshop API endpoints",
+      "_type": "request_group"
+    },
+    {
+      "_id": "wrk_vehicle_workshop",
+      "parentId": null,
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "name": "Vehicle Workshop",
+      "description": "API for Vehicle Workshop",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "req_auth",
+      "parentId": "req_root",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "name": "Authentication",
+      "description": "Authentication endpoints",
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_vehicle",
+      "parentId": "req_root",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "name": "Vehicles",
+      "description": "Vehicle-related endpoints",
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_registration",
+      "parentId": "req_root",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "name": "Vehicle Registrations",
+      "description": "Vehicle registration endpoints",
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_user",
+      "parentId": "req_root",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "name": "Users",
+      "description": "User-related endpoints",
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_conversion",
+      "parentId": "req_root",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "name": "Conversion History",
+      "description": "Conversion history endpoints",
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_login",
+      "parentId": "req_auth",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "url": "{{ base_url }}/api/auth/login",
+      "name": "Login",
+      "description": "Login to get JWT token",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"username\": \"admin\",\n\t\"password\": \"admin\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "_type": "request"
+    },
+    {
+      "_id": "req_validate",
+      "parentId": "req_auth",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "url": "{{ base_url }}/api/auth/validate",
+      "name": "Validate Token",
+      "description": "Validate JWT token",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ access_token }}"
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "req_get_all_vehicles",
+      "parentId": "req_vehicle",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "url": "{{ base_url }}/api/vehicles",
+      "name": "Get All Vehicles",
+      "description": "Get all vehicles",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ access_token }}"
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "req_get_vehicle",
+      "parentId": "req_vehicle",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "url": "{{ base_url }}/api/vehicles/1",
+      "name": "Get Vehicle by ID",
+      "description": "Get a vehicle by its ID",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ access_token }}"
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "req_create_vehicle",
+      "parentId": "req_vehicle",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "url": "{{ base_url }}/api/vehicles",
+      "name": "Create Vehicle",
+      "description": "Create a new vehicle",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"vin\": \"TEST12345678901\",\n\t\"licensePlate\": \"TEST-12345\",\n\t\"type\": \"DIESEL\",\n\t\"convertible\": false,\n\t\"injectionPumpType\": \"ROTARY\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ access_token }}"
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "req_update_vehicle",
+      "parentId": "req_vehicle",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "url": "{{ base_url }}/api/vehicles/1",
+      "name": "Update Vehicle",
+      "description": "Update an existing vehicle",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"vin\": \"D9994601\",\n\t\"licensePlate\": \"D-41613821\",\n\t\"type\": \"DIESEL\",\n\t\"convertible\": true,\n\t\"injectionPumpType\": \"ROTARY\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ access_token }}"
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "req_delete_vehicle",
+      "parentId": "req_vehicle",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "url": "{{ base_url }}/api/vehicles/1",
+      "name": "Delete Vehicle",
+      "description": "Delete a vehicle",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ access_token }}"
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "req_search_vehicles",
+      "parentId": "req_vehicle",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "url": "{{ base_url }}/api/vehicles/search",
+      "name": "Search Vehicles",
+      "description": "Search for vehicles with filters",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "searchTerm",
+          "value": "",
+          "description": "Search by VIN or license plate"
+        },
+        {
+          "name": "type",
+          "value": "",
+          "description": "Filter by type (DIESEL, ELECTRIC, GASOLINE)"
+        },
+        {
+          "name": "page",
+          "value": "0"
+        },
+        {
+          "name": "size",
+          "value": "10"
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ access_token }}"
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "req_vehicles_paginated",
+      "parentId": "req_vehicle",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "url": "{{ base_url }}/api/vehicles/paginated",
+      "name": "Get Vehicles Paginated",
+      "description": "Get paginated list of vehicles",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "page",
+          "value": "0"
+        },
+        {
+          "name": "size",
+          "value": "10"
+        },
+        {
+          "name": "sort",
+          "value": "id,asc"
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ access_token }}"
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "req_all_registrations",
+      "parentId": "req_registration",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "url": "{{ base_url }}/api/vehicles/registration",
+      "name": "Get All Vehicle Registrations",
+      "description": "Get all vehicle registrations",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ access_token }}"
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "req_search_registrations",
+      "parentId": "req_registration",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "url": "{{ base_url }}/api/vehicles/registration/search",
+      "name": "Search Vehicle Registrations",
+      "description": "Search for vehicle registrations with filters",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "searchTerm",
+          "value": "",
+          "description": "Search by registration info"
+        },
+        {
+          "name": "type",
+          "value": "",
+          "description": "Filter by type (DIESEL, ELECTRIC, GASOLINE)"
+        },
+        {
+          "name": "page",
+          "value": "0"
+        },
+        {
+          "name": "size",
+          "value": "10"
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ access_token }}"
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "req_registrations_paginated",
+      "parentId": "req_registration",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "url": "{{ base_url }}/api/vehicles/registration/paginated",
+      "name": "Get Registrations Paginated",
+      "description": "Get paginated list of vehicle registrations",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "page",
+          "value": "0"
+        },
+        {
+          "name": "size",
+          "value": "10"
+        },
+        {
+          "name": "sort",
+          "value": "id,asc"
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ access_token }}"
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "req_get_current_user",
+      "parentId": "req_user",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "url": "{{ base_url }}/api/users/profile",
+      "name": "Get Current User Profile",
+      "description": "Get the profile of the currently authenticated user",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ access_token }}"
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "req_users_paginated",
+      "parentId": "req_user",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "url": "{{ base_url }}/api/users/paginated",
+      "name": "Get Users Paginated",
+      "description": "Get paginated list of users",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "page",
+          "value": "0"
+        },
+        {
+          "name": "size",
+          "value": "10"
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ access_token }}"
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "req_conversion_paginated",
+      "parentId": "req_conversion",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "url": "{{ base_url }}/api/conversion-history/all/paginated",
+      "name": "Get Conversion History Paginated",
+      "description": "Get paginated list of conversion history",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "page",
+          "value": "0"
+        },
+        {
+          "name": "size",
+          "value": "10"
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ access_token }}"
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "env_base",
+      "parentId": "wrk_vehicle_workshop",
+      "modified": 1747321800000,
+      "created": 1747321800000,
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:8080",
+        "access_token": ""
+      },
+      "_type": "environment"
+    }
+  ]
+}
