@@ -24,7 +24,6 @@ export const App = () => {
       requireAuth
     >
       <CustomRoutes>{customRoutes}</CustomRoutes>
-      {/* Vehicle resource */}
       <Resource
         name="vehicles"
         list={VehicleList}

@@ -9,6 +9,7 @@ import {
   FormDataConsumer,
   useNotify,
   useRedirect,
+  BooleanInput,
 } from "react-admin";
 
 import {
@@ -84,6 +85,12 @@ export const VehicleCreate = () => {
                 <NumberInput
                   source="batteryCurrent"
                   validate={batteryCurrentValidator}
+                  {...rest}
+                />
+                <BooleanInput
+                  source="convertible"
+                  label="Convertible"
+                  defaultValue={false}
                   {...rest}
                 />
               </>

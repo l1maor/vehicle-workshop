@@ -42,10 +42,7 @@ export const dataProvider: DataProvider = {
       (params.filter.searchTerm || params.filter.type)
     ) {
       resourcePath = `${resource}/search`;
-      console.log(
-        "[dataProvider] Using search endpoint for vehicles with filter:",
-        params.filter,
-      );
+
     } else if (resource === "vehicles/registration") {
       resourcePath = resource;
     } else {
@@ -53,7 +50,7 @@ export const dataProvider: DataProvider = {
     }
 
     let modifiedFilter = { ...params.filter };
-    
+
     if (modifiedFilter && modifiedFilter.type === 'ALL') {
       delete modifiedFilter.type;
     }
@@ -118,10 +115,33 @@ export const dataProvider: DataProvider = {
   },
 
   update: (resource, params) => {
+
+    let dataToSend = { ...params.data };
+
+
+    if (resource === 'vehicles') {
+      if (!dataToSend.type && params.previousData && params.previousData.type) {
+
+        dataToSend.type = params.previousData.type;
+      }
+
+
+      if (dataToSend.type === 'GASOLINE' && dataToSend.fuelTypes) {
+        if (Array.isArray(dataToSend.fuelTypes)) {
+
+          dataToSend.fuelTypes = dataToSend.fuelTypes.map((item: any) =>
+            typeof item === 'object' && item !== null && 'id' in item ? item.id : item
+          );
+        }
+      }
+    }
+
+
+
     return httpClient(`${apiUrl}/${resource}/${params.id}`, {
       method: "PUT",
-      body: JSON.stringify(params.data),
-    }).then(({ json }) => ({ data: json || params.data }));
+      body: JSON.stringify(dataToSend),
+    }).then(({ json }) => ({ data: json || dataToSend }));
   },
 
   updateMany: (resource, params) => {
@@ -154,8 +174,7 @@ export const dataProvider: DataProvider = {
         url = `${apiUrl}/${resource}/electric`;
       } else if (vehicleType === "GASOLINE") {
         url = `${apiUrl}/${resource}/gas`;
-        
-        // Convert fuelTypes from array of objects to array of strings
+
         if (dataToSend.fuelTypes && Array.isArray(dataToSend.fuelTypes)) {
           dataToSend.fuelTypes = dataToSend.fuelTypes.map((item: any) => item.id);
         }

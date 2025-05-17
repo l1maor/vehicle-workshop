@@ -150,7 +150,7 @@ export const RegistrationInfo = ({
                     <IconButton
                       size="small"
                       component={Link}
-                      to={`/vehicles/${reg.id}/conversion-history`}
+                      to={`/vehicles/${reg.id}/registration`}
                       title="View conversion history"
                     >
                       <HistoryIcon fontSize="small" />

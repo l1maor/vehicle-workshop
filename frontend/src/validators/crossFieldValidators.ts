@@ -1,14 +1,9 @@
-/**
- * Validates vehicle fields based on the vehicle type
- * 
- * @param values Form values
- * @returns An object with validation errors, or empty if no errors
- */
+
 export const validateVehicleFields = (values: any) => {
   const errors: Record<string, any> = {};
 
   if (!values.type) {
-    return errors; // Basic required validation will handle this
+    return errors;
   }
 
   switch (values.type) {

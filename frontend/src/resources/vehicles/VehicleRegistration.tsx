@@ -70,7 +70,6 @@ export const VehicleRegistration = () => {
         const data = await vehicleOperations.getRegistration(id);
         setRegistration(data);
 
-        // If the vehicle has conversion history, fetch it
         if (data.hasConversionHistory) {
           const historyData = await vehicleOperations.getConversionHistory(id);
           if (Array.isArray(historyData)) {
@@ -111,12 +110,10 @@ export const VehicleRegistration = () => {
     );
   }
 
-  // Format timestamp to readable date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
 
-  // Explicitly cast registration to a more specific type to avoid type errors
   const typedRegistration = registration as {
     id: number;
     type: string;
@@ -157,7 +154,7 @@ export const VehicleRegistration = () => {
             </Box>
           )}
 
-          {/* Show conversion history if available */}
+
           {typedRegistration.hasConversionHistory && conversionHistory.length > 0 && (
             <Box sx={{ mt: 3 }}>
               <Typography variant="h6" gutterBottom>
@@ -213,7 +210,6 @@ export const VehicleRegistration = () => {
                 </Table>
               </TableContainer>
               
-              {/* More comprehensive details section for the most recent conversion */}
               {conversionHistory.length > 0 && conversionHistory[0].conversionDetails && (
                 <Box sx={{ mt: 3, p: 2, bgcolor: "background.paper", borderRadius: 1, border: 1, borderColor: "divider" }}>
                   <Typography variant="h6" gutterBottom>Latest Conversion Details</Typography>
@@ -231,7 +227,6 @@ export const VehicleRegistration = () => {
         </Button>
       </CardContent>
 
-      {/* Dialog for displaying conversion details */}
       <Dialog 
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}

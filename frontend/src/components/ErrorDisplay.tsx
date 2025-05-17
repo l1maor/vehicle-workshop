@@ -21,11 +21,9 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ error }) => {
     return null;
   }
   
-  // Handle validation errors (HTTP 400 Bad Request)
   if (error.status === 400 && error.body.errors) {
     const errorData = error.body.errors;
     
-    // If errorData is an object with field-specific errors
     if (typeof errorData === 'object' && !Array.isArray(errorData)) {
       return (
         <Box sx={{ mt: 2, mb: 2 }}>
@@ -43,7 +41,6 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ error }) => {
       );
     }
     
-    // If errorData is an array
     if (Array.isArray(errorData)) {
       return (
         <Box sx={{ mt: 2, mb: 2 }}>
@@ -60,7 +57,6 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ error }) => {
     }
   }
   
-  // Handle other types of errors
   return (
     <Box sx={{ mt: 2, mb: 2 }}>
       <Alert severity="error">

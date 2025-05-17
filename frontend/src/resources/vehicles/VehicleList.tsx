@@ -37,7 +37,6 @@ const vehicleFilters = [
     emptyText={"All Types"}
     emptyValue={""}
     choices={[
-      // { id: "ALL", name: "All Types" },
       { id: "DIESEL", name: "Diesel" },
       { id: "ELECTRIC", name: "Electric" },
       { id: "GASOLINE", name: "Gasoline" },
@@ -87,7 +86,9 @@ const ConvertToGasButton = () => {
   const record = useRecordContext();
   const redirect = useRedirect();
 
-  if (!record || record.type !== "ELECTRIC") return null;
+  if (!record || record.type !== "ELECTRIC" || !record.convertible) {
+    return null;
+  }
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();

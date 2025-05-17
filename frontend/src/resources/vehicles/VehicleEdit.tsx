@@ -3,11 +3,11 @@ import {
   SimpleForm,
   TextInput,
   SelectInput,
-  ArrayInput,
-  SimpleFormIterator,
+  SelectArrayInput,
   NumberInput,
   FormDataConsumer,
   useNotify,
+  BooleanInput,
 } from "react-admin";
 
 import {
@@ -22,16 +22,43 @@ import {
 import { validateVehicleFields } from "../../validators/crossFieldValidators";
 import { ErrorDisplay } from "../../components/ErrorDisplay";
 
+
+
 export const VehicleEdit = () => {
-  console.log("RENDER :: VehicleEdit");
+
   const notify = useNotify();
 
-  const onSuccess = () => {
-    notify('Vehicle updated successfully');
+  const transform = (data: any) => {
+
+    
+    const transformedData = { ...data };
+    
+    if (transformedData.type === 'GASOLINE' && transformedData.fuelTypes) {
+      if (!Array.isArray(transformedData.fuelTypes)) {
+
+        transformedData.fuelTypes = transformedData.fuelTypes ? [transformedData.fuelTypes] : [];
+      }
+    }
+    
+
+    return transformedData;
   };
   
   return (
-    <Edit mutationOptions={{ onSuccess }}>
+    <Edit
+      mutationMode="pessimistic"
+      transform={transform}
+      mutationOptions={{
+        onSuccess: (data) => {
+
+          notify('Vehicle updated successfully', { type: 'success' });
+        },
+        onError: (error) => {
+
+          notify(`Error: ${error.message || 'Failed to update vehicle'}`, { type: 'error' });
+        },
+      }}
+    >  
       <SimpleForm validate={validateVehicleFields}>
         <ErrorDisplay />
         <TextInput source="id" disabled />
@@ -87,25 +114,36 @@ export const VehicleEdit = () => {
                     validate={batteryCurrentValidator}
                     {...rest}
                   />
+                  <BooleanInput
+                    source="convertible"
+                    label="Convertible"
+                    defaultValue={false}
+                    {...rest}
+                  />
                 </>
               );
             }
 
             if (formData.type === "GASOLINE") {
               return (
-                <ArrayInput source="fuelTypes" validate={fuelTypesValidator}>
-                  <SimpleFormIterator>
-                    <SelectInput
-                      source="id"
-                      choices={[
-                        { id: "B83", name: "B83" },
-                        { id: "B90", name: "B90" },
-                        { id: "B94", name: "B94" },
-                        { id: "B100", name: "B100" },
-                      ]}
-                    />
-                  </SimpleFormIterator>
-                </ArrayInput>
+                <SelectArrayInput
+                  source="fuelTypes"
+                  validate={fuelTypesValidator}
+                  choices={[
+                    { id: "B83", name: "B83" },
+                    { id: "B90", name: "B90" },
+                    { id: "B94", name: "B94" },
+                    { id: "B100", name: "B100" },
+                  ]}
+                  parse={(value) => {
+
+                    return value;
+                  }}
+                  format={(value) => {
+
+                    return value;
+                  }}
+                />                  
               );
             }
 

@@ -56,14 +56,12 @@ export const Dashboard = () => {
       });
   }, [dataProvider]);
 
-  // Check if we should show the seed dialog
   useEffect(() => {
     if (!loading && vehicleStats.total === 0) {
       setOpenSeedDialog(true);
     }
   }, [loading, vehicleStats.total]);
 
-  // Handle seeding the database
   const handleSeedDatabase = () => {
     setSeeding(true);
     
@@ -84,7 +82,6 @@ export const Dashboard = () => {
         setSeeding(false);
         setOpenSeedDialog(false);
         
-        // Refresh the dashboard data
         setLoading(true);
         dataProvider
           .getList("vehicles", {
@@ -154,7 +151,7 @@ export const Dashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Seed Database Dialog */}
+
       <Dialog 
         open={openSeedDialog} 
         onClose={() => setOpenSeedDialog(false)}
@@ -182,7 +179,7 @@ export const Dashboard = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Success Notification */}
+
       <Snackbar 
         open={seedSuccess} 
         autoHideDuration={5000} 

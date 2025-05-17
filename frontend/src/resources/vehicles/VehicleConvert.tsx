@@ -36,7 +36,7 @@ const steps = [
 ];
 
 export const VehicleConvert = () => {
-  console.log("RENDER :: VehicleConvert");
+
   const { id } = useParams();
   const redirect = useRedirect();
   const notify = useNotify();
@@ -45,13 +45,7 @@ export const VehicleConvert = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [fuelTypes, setFuelTypes] = useState<string[]>([]);
   const { data: vehicle, isLoading } = useGetOne("vehicles", { id });
-  console.log({ fuelTypes });
-  console.log({ vehicle });
-  console.log({ activeStep });
-  console.log({ convertible });
-  console.log({ loading });
-  console.log({ isLoading });
-  console.log({ id });
+
 
   useEffect(() => {
     if (!id) return;
