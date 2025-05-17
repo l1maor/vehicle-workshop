@@ -54,16 +54,14 @@ public class TestDataGenerator {
         vehicle.setLicensePlate("E-" + System.nanoTime() % 10000000 + index);
         vehicle.setBatteryType(index % 2 == 0 ? BatteryType.GEL : BatteryType.LITHIUM);
         
-        // Generate random voltage between 24 and 800 volts (common EV battery voltage ranges)
         Random random = new Random();
         int voltage = 24 + random.nextInt(777); // Results in range 24-800
         vehicle.setBatteryVoltage(voltage);
-        
-        // Generate random current between 50 and 800 amperes
+
         int current = 50 + random.nextInt(751); // Results in range 50-800
         vehicle.setBatteryCurrent(current);
         
-        vehicle.setConvertible(true);
+        vehicle.setConvertible(new Random().nextBoolean());
         return vehicle;
     }
 
@@ -110,14 +108,6 @@ public class TestDataGenerator {
     }
     
     @Transactional
-    public void createVehicleRegistrationInfos() {
-        logger.info("Vehicle registration view automatically populates from underlying tables");
-        
-        entityManager.flush();
-        entityManager.clear();
-    }
-    
-    @Transactional
     public void seedSmallDataset() {
         clearDatabase();
         
@@ -143,8 +133,6 @@ public class TestDataGenerator {
         electricVehicles.stream()
             .filter(v -> v.getId() % 3 == 0)
             .forEach(this::createConversionHistory);
-            
-        createVehicleRegistrationInfos();
     }
     
     @Transactional
@@ -195,8 +183,6 @@ public class TestDataGenerator {
         for (ElectricVehicle vehicle : convertibleVehicles) {
             createConversionHistory(vehicle);
         }
-        
-        createVehicleRegistrationInfos();
     }
     
     @Transactional

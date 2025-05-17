@@ -33,8 +33,12 @@ public class DatabaseInitializer implements ApplicationRunner {
         logger.info("Initializing database objects (triggers, views, functions)...");
 
         try {
+            Boolean viewExists = jdbcTemplate.queryForObject(
+                "SELECT EXISTS (SELECT FROM information_schema.views " +
+                "WHERE table_schema = 'public' AND table_name = 'vw_vehicle_registration_info')",
+                Boolean.class);
 
-            dropVehicleRegistrationInfoTable();
+            logger.info("View vw_vehicle_registration_info exists before initialization: {}", viewExists);
 
 
             ClassPathResource resource = new ClassPathResource("sql/db-objects.sql");
@@ -44,9 +48,20 @@ public class DatabaseInitializer implements ApplicationRunner {
                 sql = reader.lines().collect(Collectors.joining("\n"));
             }
 
-
             jdbcTemplate.execute(sql);
 
+            Boolean viewCreated = jdbcTemplate.queryForObject(
+                "SELECT EXISTS (SELECT FROM information_schema.views " +
+                "WHERE table_schema = 'public' AND table_name = 'vw_vehicle_registration_info')",
+                Boolean.class);
+
+            logger.info("View vw_vehicle_registration_info exists after initialization: {}", viewCreated);
+
+            Integer viewRowCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM vw_vehicle_registration_info",
+                Integer.class);
+
+            logger.info("View vw_vehicle_registration_info contains {} rows", viewRowCount != null ? viewRowCount : 0);
 
             if (verifyDatabaseObjects()) {
                 logger.info("Database objects successfully initialized and verified.");
@@ -58,47 +73,17 @@ public class DatabaseInitializer implements ApplicationRunner {
         }
     }
 
-    private void dropVehicleRegistrationInfoTable() {
-        try {
-
-            Boolean isTable = jdbcTemplate.queryForObject(
-                "SELECT EXISTS (SELECT FROM information_schema.tables " +
-                "WHERE table_schema = 'public' AND table_name = 'vehicle_registration_info')",
-                Boolean.class);
-
-
-            Boolean isVwTable = jdbcTemplate.queryForObject(
-                "SELECT EXISTS (SELECT FROM information_schema.tables " +
-                "WHERE table_schema = 'public' AND table_name = 'vw_vehicle_registration_info')",
-                Boolean.class);
-
-            if (Boolean.TRUE.equals(isTable)) {
-                logger.info("Dropping vehicle_registration_info table to replace it with a view");
-                jdbcTemplate.execute("DROP TABLE IF EXISTS vehicle_registration_info CASCADE");
-            }
-
-            if (Boolean.TRUE.equals(isVwTable)) {
-                logger.info("Dropping vw_vehicle_registration_info table to replace it with a view");
-                jdbcTemplate.execute("DROP TABLE IF EXISTS vw_vehicle_registration_info CASCADE");
-            }
-        } catch (Exception e) {
-            logger.error("Error dropping vehicle_registration_info table", e);
-        }
-    }
 
     private boolean verifyDatabaseObjects() {
         try {
-
             Integer viewCount = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM information_schema.views " +
                 "WHERE table_schema = 'public' AND table_name = 'vw_vehicle_registration_info'",
                 Integer.class);
 
-
             Integer triggerCount = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM pg_trigger WHERE tgname = 'vehicle_conversion_trigger'",
                 Integer.class);
-
 
             Integer functionCount = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM pg_proc WHERE proname = 'record_vehicle_conversion'",
@@ -117,6 +102,4 @@ public class DatabaseInitializer implements ApplicationRunner {
             return false;
         }
     }
-
-
 }

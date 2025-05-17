@@ -4,8 +4,6 @@ import com.l1maor.vehicleworkshop.entity.*;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Set;
 
 @Component
 public class TestDataGenerator {
@@ -78,16 +76,14 @@ public class TestDataGenerator {
         return vehicle;
     }
     
-    // Stub methods for compatibility with existing tests
     public void clearAllData() {
-        // No-op for unit tests
+        // stub
     }
     
     public User createUser(String username, String password, RoleType roleType) {
-        // This is a stub implementation to satisfy compilation
         User user = new User();
         user.setUsername(username);
-        user.setPasswordHash(password); // In real code, this would be hashed
+        user.setPasswordHash(password);
         user.setRoleType(roleType);
         return user;
     }
