@@ -103,25 +103,3 @@ SELECT
         ELSE NULL
     END AS conversion_data
 FROM vehicles v;
-
-CREATE OR REPLACE FUNCTION vehicle_search_vector(vin TEXT, license_plate TEXT) RETURNS tsvector AS $$
-BEGIN
-
-  RETURN to_tsvector('simple',
-    COALESCE(vin, '') || ' ' ||
-    COALESCE(license_plate, '') || ' ' ||
-    regexp_replace(COALESCE(license_plate, ''), '[^a-zA-Z0-9]', ' ', 'g') || ' ' ||
-    regexp_replace(COALESCE(vin, ''), '[^a-zA-Z0-9]', ' ', 'g')
-  );
-END;
-$$ LANGUAGE plpgsql IMMUTABLE;
-
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-                 WHERE c.relname = 'idx_vehicles_search' AND n.nspname = 'public') THEN
-
-    EXECUTE 'CREATE INDEX idx_vehicles_search ON vehicles USING gin(vehicle_search_vector(vin, license_plate))';
-  END IF;
-END
-$$;
