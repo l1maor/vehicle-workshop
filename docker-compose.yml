@@ -6,8 +6,8 @@ services:
     container_name: vehicleworkshop-postgres
     environment:
       POSTGRES_DB: vehicleworkshop
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ChichiricumandingA123321..
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ChichiricumandingA123321..}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -31,8 +31,8 @@ services:
         condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vehicleworkshop
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: ChichiricumandingA123321..
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-ChichiricumandingA123321..}
       SPRING_PROFILES_ACTIVE: prod
     ports:
       - "8080:8080"
